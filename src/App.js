@@ -1,25 +1,16 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import HereMap from './components/HereMap';
+import './styles/App.css';
 
-function App() {
+const App = () => {
+  const apiKey = 'ZwJpQXPIykn1KNiFFc9h6rSS3hXYbdhVHUvRkFfyLeI'; // Replace with your HERE Maps API key
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Maps</h1>
+      <HereMap apiKey={apiKey} />
     </div>
   );
-}
+};
 
 export default App;

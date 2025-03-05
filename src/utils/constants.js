@@ -1,0 +1,1 @@
+export const HERE_API_KEY = 'ZwJpQXPIykn1KNiFFc9h6rSS3hXYbdhVHUvRkFfyLeI'; // Replace with your HERE Maps API key
