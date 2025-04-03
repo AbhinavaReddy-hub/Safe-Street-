@@ -3,7 +3,7 @@ import {Slot,Stack} from 'expo-router';
 import {useFonts} from 'expo-font';
 import {UserDetailContext} from '../context/UserDetailContext';
 import { useState } from 'react';
-
+import "../global.css";
 const RootLayout = () => {
   useFonts({
     'outfit': require('../assets/fonts/Outfit-Regular.ttf'),
