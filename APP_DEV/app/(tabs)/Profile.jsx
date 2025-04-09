@@ -1,11 +1,15 @@
 import { Text, View } from 'react-native'
+import DefaultLayout from '../../components/Shared/DefaultLayout'
 import React from 'react'
 
 const Profile = () => {
   return (
-    <View>
-      <Text>Profile</Text>
-    </View>
+    <DefaultLayout>
+
+      <View>
+        <Text>Profile</Text>
+      </View>
+    </DefaultLayout>
   )
 }
 

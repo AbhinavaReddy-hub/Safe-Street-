@@ -1,4 +1,6 @@
-import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity ,StyleSheet} from 'react-native';
+import DefaultLayout from '../../components/Shared/DefaultLayout';
+import Header from '@/components/Home/Header';
 import { useRouter } from 'expo-router';
 import { Camera, ClipboardList, CircleUser as UserCircle, MapPin, Calendar } from 'lucide-react-native';
 
@@ -80,61 +82,37 @@ export default function Home() {
   );
 
   return (
+    <DefaultLayout>
+      
     <ScrollView className="flex-1 bg-gray-50">
-      {/* Header Section */}
-      <View className="flex-row justify-between items-center p-5 pt-14 bg-white">
-        <View>
-          <Text className="text-base text-gray-500">Welcome back,</Text>
-          <Text className="text-2xl font-bold text-gray-900">{mockUser.name}</Text>
-        </View>
-        <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=800&auto=format&fit=crop&q=60' }}
-          className="w-12 h-12 rounded-full"
-        />
-      </View>
-
       {/* Stats Section */}
-      <View className="px-5 py-6 bg-white mt-[1px]">
+      <Header/>
+      <View className="px-5 py-6 bg-white mt-[1px] mx-2 rounded-xl" style={styles.shadow}>
         <View className="flex-row justify-between">
-          <View className="flex-1 items-center bg-blue-50 p-4 rounded-2xl mr-2">
+          <View className="flex-1 items-center bg-amber-800/[40%] p-4 rounded-2xl mr-2">
             <Text className="text-2xl font-bold ">{mockUser.stats.totalReports}</Text>
-            <Text className="text-sm text-blue-500 text-center mt-1">Total Reports</Text>
+            <Text className="text-[16px] text-blue-700 text-center mt-1">Total Reports</Text>
           </View>
-          <View className="flex-1 items-center bg-blue-50 p-4 rounded-2xl mx-2">
+          <View className="flex-1 items-center bg-amber-800/[40%] p-4 rounded-2xl mx-2">
             <Text className="text-2xl font-bold ">{mockUser.stats.pendingTasks}</Text>
-            <Text className="text-sm text-amber-700 text-center mt-1">Pending Tasks</Text>
+            <Text className="text-[16px] text-yellow-700 text-center mt-1">Pending Tasks</Text>
           </View>
-          <View className="flex-1 items-center bg-blue-50 p-4 rounded-2xl ml-2">
+          <View className="flex-1 items-center bg-amber-800/[40%] p-4 rounded-2xl ml-2">
             <Text className="text-2xl font-bold ">{mockUser.stats.resolvedCases}</Text>
-            <Text className="text-sm text-green-700 mt-1">Resolved</Text>
+            <Text className="text-[16px] text-green-700 mt-1">Resolved</Text>
           </View>
         </View>
+          <View className='flex-1 items-center justify-center mt-5'>
+            <TouchableOpacity onPress={()=>(router.push("/(tabs)/Tasks"))}  className='px-5 py-3 bg-amber-800 rounded-2xl'>
+              <Text className='text-white text-xl'>Go to My Tasks</Text>
+            </TouchableOpacity>
+          </View>
       </View>
 
-      {/* Quick Actions */}
-      <View className="p-5 bg-white mt-3">
-        <Text className="text-lg font-bold text-gray-900 mb-4">Quick Actions</Text>
-        <View className="flex-row justify-between">
-          <QuickActionButton
-            icon={<Camera size={24} color="#3b82f6" />}
-            label="Upload Image"
-            onPress={() => router.push('/Upload')}
-          />
-          <QuickActionButton
-            icon={<ClipboardList size={24} color="#3b82f6" />}
-            label="View Tasks"
-            onPress={() => router.push('/Tasks')}
-          />
-          <QuickActionButton
-            icon={<UserCircle size={24} color="#3b82f6" />}
-            label="Profile"
-            onPress={() => router.push('/Profile')}
-          />
-        </View>
-      </View>
+  
 
       {/* Recent Reports */}
-      <View className="p-5 bg-white mt-3 mb-5">
+      <View className="p-5 bg-white mt-3 mb-5 mx-2 rounded-xl" style={styles.shadow}>
         <Text className="text-lg font-bold text-gray-900 mb-4">Recent Reports</Text>
         {mockUser.recentReports.map((report) => (
           <View key={report.id} className="flex-row bg-white rounded-xl mb-4 border border-gray-100 overflow-hidden">
@@ -167,5 +145,20 @@ export default function Home() {
         ))}
       </View>
     </ScrollView>
+    </DefaultLayout>
   );
 }
+
+const styles = StyleSheet.create({
+  shadow: {
+      shadowColor: "#000",
+      shadowOffset: {
+          width: 0,
+          height: 3,
+      },
+      shadowOpacity: 0.27,
+      shadowRadius: 4.65,
+
+      elevation: 6,
+  }
+})
