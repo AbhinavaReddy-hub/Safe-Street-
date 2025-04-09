@@ -74,7 +74,7 @@ import Button from "../components/Shared/Button";
           <Text style={[styles.buttonText,{color:Colors.PRIMARY}]}>Get Started</Text>
         </TouchableOpacity>
 
-        <Button text={'Already have an Account'} type={"fill"} onPress={()=>router.push('./auth/SignIn')}/>
+        <Button text={'Already have an Account'} onPress={()=>router.push('./auth/SignIn')}/>
       </View>
     </View>
   );
