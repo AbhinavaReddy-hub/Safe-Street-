@@ -1,5 +1,5 @@
 // components/Notification.js
-import { View, Text ,ScrollView} from 'react-native';
+import { View, Text ,ScrollView,StyleSheet} from 'react-native';
 import DefaultLayout from '../../components/Shared/DefaultLayout';
 import React from 'react';
 
@@ -74,12 +74,15 @@ const Notification = () => {
 
       return (
         <DefaultLayout>
-          <ScrollView className=" w-full px-4 mt-[20px]">
+          <ScrollView className="flex-1 bg-gray-50 px-3">
+            <View>
+              <Text className="mt-[20px] text-center font-bold text-2xl mb-4">Messages</Text>
+            </View>
           {notifications.map((data) => (
-            <View key={data.id} className="mb-3 p-2 bg-white rounded-lg shadow">
+            <View key={data.id} className="mb-3 p-2 bg-white rounded-lg" style={styles.shadow}>
                 <View className='flex-1 flex-row mr-10 justify-between'>
-              <Text className="font-bold text-[16px] text-black">{data.title}</Text>
-              <View className={`w-2 h-2 rounded-full mr-2 ${getSeverityColor(data.severity)}`} />
+              <Text className="font-semibold text-[16px] text-black">{data.title}</Text>
+              <View className={`w-3 h-3 rounded-full mr-2 ${getSeverityColor(data.severity)}`} />
                 </View>
 
               <Text className="text-gray-700">{data.message}</Text>
@@ -92,5 +95,22 @@ const Notification = () => {
 
       );
 };
+
+
+
+const styles = StyleSheet.create({
+  shadow: {
+      shadowColor: "#000000",
+      shadowOffset: {
+          width: 1,
+          height: 1,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius:1,
+
+      elevation: 15,
+  }
+})
+
 
 export default Notification;

@@ -71,16 +71,6 @@ const getStatusColor = (status: string) => {
 export default function Home() {
   const router = useRouter();
 
-  const QuickActionButton = ({ icon, label, onPress }: any) => (
-    <TouchableOpacity
-      className="flex-1 items-center bg-blue-50 p-4 rounded-xl mx-1 shadow-sm"
-      onPress={onPress}
-    >
-      {icon}
-      <Text className="text-xs text-blue-500 mt-2 text-center">{label}</Text>
-    </TouchableOpacity>
-  );
-
   return (
     <DefaultLayout>
       

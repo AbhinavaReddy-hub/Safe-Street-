@@ -17,9 +17,9 @@ import Button from "../components/Shared/Button";
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
-        console.log(user);
+        console.log("user already exists");
         const result = await getDoc(doc(db, "users", user?.email));
-        console.log(result.data());
+        console.log("user found redirecting to home ....");
         setUserDetail(result.data());
         router.replace("../(tabs)/Home"); 
       }

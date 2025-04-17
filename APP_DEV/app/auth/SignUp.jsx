@@ -24,7 +24,7 @@ export default function SignUp() {
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (res) => {
         const user = res.user;
-        console.log(user);
+        console.log("user Created successfully!!");
         await sendEmailVerification(user);
         setEmailSent(true);
         console.log("Verification email sent");
