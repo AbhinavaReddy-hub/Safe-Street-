@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, Image, TouchableOpacity, Linking } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 import { MapPin, ArrowRight, CircleCheck as CheckCircle2, CircleAlert as AlertCircle } from 'lucide-react-native';
+import DefaultLayout from '../../components/Shared/DefaultLayout'
 
 const mockTasks = [
   {
@@ -9,7 +10,7 @@ const mockTasks = [
     type: 'Pothole',
     severity: 'High',
     status: 'Pending',
-    location: '123 Main St, City',
+    location: 'Narayanaguda',
     coordinates: { lat: 40.7128, lng: -74.0060 },
     date: '2024-02-20',
     description: 'Large pothole causing traffic disruption. Immediate attention required.',
@@ -20,7 +21,7 @@ const mockTasks = [
     type: 'Road Crack',
     severity: 'Medium',
     status: 'In Progress',
-    location: '456 Oak Ave, City',
+    location: 'Gachibowli',
     coordinates: { lat: 40.7142, lng: -74.0064 },
     date: '2024-02-19',
     description: 'Longitudinal crack extending across lane. Requires sealing.',
@@ -31,7 +32,7 @@ const mockTasks = [
     type: 'Surface Damage',
     severity: 'Low',
     status: 'Pending',
-    location: '789 Pine Rd, City',
+    location: 'Miyapur',
     coordinates: { lat: 40.7135, lng: -74.0057 },
     date: '2024-02-18',
     description: 'Surface wear showing signs of deterioration. Schedule maintenance.',
@@ -71,7 +72,10 @@ const openMapsWithDirections = (coordinates: { lat: number; lng: number }) => {
 
 export default function Tasks() {
   const router = useRouter();
-
+  const navigation = useNavigation();
+  const openDetails = (task) => {
+    navigation.navigate("Safe-Street-\\APP_DEV\\app\\(tabs)\\TaskDetails.jsx", { task });
+  };
   const TaskCard = ({ task }: { task: typeof mockTasks[0] }) => (
     <View className="bg-white rounded-xl shadow-sm mb-4 overflow-hidden">
       <View className="flex-row">
@@ -86,7 +90,7 @@ export default function Tasks() {
               <Text className="text-xs text-white font-semibold">{task.severity}</Text>
             </View>
           </View>
-          
+
           {/* <Text numberOfLines={2} className="text-sm text-gray-600 mb-3">
             {task.description}
           </Text> */}
@@ -101,15 +105,15 @@ export default function Tasks() {
       </View>
 
       <View className="flex-row border-t border-gray-100 divide-x divide-gray-100">
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-1 flex-row items-center justify-center py-3 bg-gray-50"
-          
+          onPress={() => openDetails(task)}
         >
           <ArrowRight size={16} color="#3b82f6" />
           <Text className="text-sm text-blue-500 ml-2">Details</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-1 flex-row items-center justify-center py-3 bg-gray-50"
           onPress={() => openMapsWithDirections(task.coordinates)}
         >
@@ -117,9 +121,9 @@ export default function Tasks() {
           <Text className="text-sm text-blue-500 ml-2">Navigate</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-1 flex-row items-center justify-center py-3 bg-gray-50"
-          onPress={() => {/* Handle mark as resolved */}}
+          onPress={() => {/* Handle mark as resolved */ }}
         >
           <CheckCircle2 size={16} color="#3b82f6" />
           <Text className="text-sm text-blue-500 ml-2">Resolve</Text>
@@ -129,22 +133,24 @@ export default function Tasks() {
   );
 
   return (
-    <View className="flex-1 bg-gray-100">
-      {/* Header */}
-      <View className="bg-white px-5 pt-14 pb-4">
-        <Text className="text-2xl font-bold text-gray-900">Tasks</Text>
-        <View className="flex-row items-center mt-2">
-          <AlertCircle size={16} color="#6b7280" />
-          <Text className="text-gray-500 ml-2">{mockTasks.length} tasks assigned</Text>
+    <DefaultLayout>
+      <View className="flex-1 bg-gray-100">
+        {/* Header */}
+        <View className="bg-white px-5 pt-14 pb-4">
+          <Text className="text-2xl font-bold text-gray-900">Tasks</Text>
+          <View className="flex-row items-center mt-2">
+            <AlertCircle size={16} color="#6b7280" />
+            <Text className="text-gray-500 ml-2">{mockTasks.length} tasks assigned</Text>
+          </View>
         </View>
-      </View>
 
-      {/* Task List */}
-      <ScrollView className="flex-1 px-5 pt-4">
-        {mockTasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
-      </ScrollView>
-    </View>
+        {/* Task List */}
+        <ScrollView className="flex-1 px-5 pt-4">
+          {mockTasks.map((task) => (
+            <TaskCard key={task.id} task={task} />
+          ))}
+        </ScrollView>
+      </View>
+    </DefaultLayout>
   );
 }

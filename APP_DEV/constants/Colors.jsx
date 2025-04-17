@@ -3,6 +3,6 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 export default{
-  WHITE:'#fff',
-  PRIMARY:'#0075ff',
+  WHITE:'#ffffff',
+  PRIMARY:'rgba(69, 26, 3, 0.8)',
 }

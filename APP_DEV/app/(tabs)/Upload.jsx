@@ -1,12 +1,18 @@
-import { View, Text } from 'react-native'
+import { View, Text, ScrollView } from 'react-native';
+import DefaultLayout from "../../components/Shared/DefaultLayout";
 import React from 'react'
 
 const Upload = () => {
   return (
-    <View>
-      <Text>Upload</Text>
-    </View>
+    <DefaultLayout>
+      <ScrollView>
+          <View>
+            <Text>Upload</Text>
+          </View>
+     </ScrollView>
+    </DefaultLayout>
+  
   )
 }
 
-export default Upload
+export default Upload;
