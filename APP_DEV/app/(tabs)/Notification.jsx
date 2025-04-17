@@ -57,20 +57,20 @@ const Notification = () => {
       "read": false
     }
   ];
-    
-    const getSeverityColor = (severity) => {
-        switch (severity.toLowerCase()) {
-          case 'high':
-            return 'bg-red-500';
-          case 'medium':
-            return 'bg-amber-500';
-          case 'low':
-            return 'bg-green-500';
-          default:
-            return 'bg-gray-500';
-        }
-      };
-  
+
+  const getSeverityColor = (severity) => {
+    switch (severity.toLowerCase()) {
+      case 'high':
+        return 'bg-red-500';
+      case 'medium':
+        return 'bg-amber-500';
+      case 'low':
+        return 'bg-green-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
 
       return (
         <DefaultLayout>
@@ -85,15 +85,15 @@ const Notification = () => {
               <View className={`w-3 h-3 rounded-full mr-2 ${getSeverityColor(data.severity)}`} />
                 </View>
 
-              <Text className="text-gray-700">{data.message}</Text>
-              <Text className="text-xs text-gray-500">{data.location}</Text>
-              <Text className="text-xs italic text-gray-400">{data.severity}</Text>
-            </View>
-          ))}
-        </ScrollView>
-      </DefaultLayout>
+            <Text className="text-gray-700">{data.message}</Text>
+            <Text className="text-xs text-gray-500">{data.location}</Text>
+            <Text className="text-xs italic text-gray-400">{data.severity}</Text>
+          </View>
+        ))}
+      </ScrollView>
+    </DefaultLayout>
 
-      );
+  );
 };
 
 
