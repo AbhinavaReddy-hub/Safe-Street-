@@ -1,6 +1,7 @@
 import { View, Text, ScrollView,StyleSheet, TouchableOpacity,Image, ToastAndroid, ActivityIndicator, Pressable, TextInput } from 'react-native';
 import { useState,useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import ImageViewing from 'react-native-image-viewing';
 import DefaultLayout from "../../components/Shared/DefaultLayout";
 import { Camera, MapPin, Calendar } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -15,6 +16,18 @@ const Upload = () => {
   const[reportLoading,setReportLoading]=useState(false);
   const[isSent,setIsSent] = useState(false);
   const[isMessage,setIsMessage] = useState(false);
+  
+    const [isImageViewVisible, setIsImageViewVisible] = useState(false);
+    const [currentImage, setCurrentImage] = useState(null);
+    const openImage = (uri) => {
+      setCurrentImage([{ uri }]);
+      setIsImageViewVisible(true);
+    };
+    
+    const closeImage = () => {
+      setIsImageViewVisible(false);
+    };
+
   useEffect(() => {
     (async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -169,11 +182,14 @@ const sendReport = async()=>{
           
           <View>
             {selectedImage ? (
-              <Image 
-                source={{ uri: selectedImage }} 
-                className="rounded-xl w-[250px] h-[200px]"
-                resizeMode="cover"
-              />
+              <TouchableOpacity onPress={()=>openImage(selectedImage)}>
+
+                <Image 
+                  source={{ uri: selectedImage }} 
+                  className="rounded-xl w-[250px] h-[200px]"
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
             ) : (
               <View className="border-[1px] border-black p-4 rounded-xl" >
                 <Image 
@@ -198,6 +214,12 @@ const sendReport = async()=>{
             </TouchableOpacity>
           </View>
           </View>
+              <ImageViewing
+                images={currentImage || []}
+                imageIndex={0}
+                visible={isImageViewVisible}
+                onRequestClose={closeImage}
+              />
             {prediction &&
                 <View className="mb-12 mx-2 mt-6 p-4 rounded-xl bg-gray-50 gap-3" style={styles.shadow}>
                   <View> 
@@ -236,7 +258,9 @@ const sendReport = async()=>{
                       <Text className="text-[16px]">{prediction.summary}</Text>
                     </View>
                     <View>
-                      <Pressable onPress={()=>{setIsMessage((cur)=>!cur)}}>
+                      <Pressable onPress={()=>{setIsMessage((cur)=>!cur);
+                        setIsSent(false);
+                      }}>
                         <Text className="text-[15px] text-amber-800/[90%] ">Want to Convey some thing to Authorities ?</Text>
                       </Pressable>
                       {isMessage&&
