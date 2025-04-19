@@ -104,12 +104,10 @@ const Notification = () => {
                 
               </View>
               <View className="flex-1">
-
                 <View className='flex-row justify-between'>
                   <Text className="font-semibold text-[16px] text-black">{data.title}</Text>
                   <View className={`w-3 h-3 rounded-full ${getSeverityColor(data.severity)}`} />
                 </View>
-
                 <Text className="text-gray-700 break-words">{data.message}</Text>
                 <Text className="text-xs text-gray-500">{data.location}</Text>
                 <Text className="text-xs italic text-gray-400">{data.severity}</Text>
