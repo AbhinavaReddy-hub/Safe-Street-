@@ -73,7 +73,7 @@ const openMapsWithDirections = (coordinates: { lat: number; lng: number }) => {
 export default function Tasks() {
   const router = useRouter();
   const navigation = useNavigation();
-  const openDetails = (task) => {
+  const openDetails = (task:object) => {
     navigation.navigate("Safe-Street-\\APP_DEV\\app\\(tabs)\\TaskDetails.jsx", { task });
   };
   const TaskCard = ({ task }: { task: typeof mockTasks[0] }) => (
