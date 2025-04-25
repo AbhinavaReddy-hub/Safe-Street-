@@ -14,7 +14,7 @@ const Footer = () => {
   const isActive = (path) => pathname === path;
 
   return (
-    <View className="bottom-0 flex-row justify-around items-center pt-1 bg-amber-800/[40%]">
+    <View className="pt-1 pb-1 bottom-0 flex-row justify-around items-center bg-amber-800/[40%]">
       <Pressable
         className="flex-col gap-1 items-center justify-center "
         onPress={() => router.replace('/Home')}>
