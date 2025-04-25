@@ -1,3 +1,4 @@
+
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies
@@ -42,3 +43,5 @@ app-example
 
 expo-env.d.ts
 # @end expo-cli
+=======
+
