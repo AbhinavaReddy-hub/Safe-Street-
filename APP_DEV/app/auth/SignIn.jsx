@@ -27,7 +27,7 @@ export default function SignIn() {
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // Toggle password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const { setUserDetail } = useContext(UserDetailContext);
 
   const onSignin = async () => {
@@ -90,14 +90,14 @@ export default function SignIn() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // Adjust for iOS
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} 
       >
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
         >
           <Image
-            source={require('../../assets/images/logo.jpg')}
+            source={require('../../assets/images/login.jpg')}
             style={styles.logo}
           />
 
@@ -163,8 +163,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   logo: {
-    width: 180,
-    height: 180,
+    width: 350,
+    height: 200,
     marginBottom: 20,
   },
   title: {
