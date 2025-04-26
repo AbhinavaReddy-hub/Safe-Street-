@@ -17,6 +17,7 @@ export default function SignUp() {
   const [emailSent, setEmailSent] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const CreateNewAccount = () => {
     setLoading(true);
@@ -48,8 +49,7 @@ export default function SignUp() {
             clearInterval(interval);
             ToastAndroid.show('Email verified! Redirecting...', ToastAndroid.SHORT);
             setLoading(false);
-            // Ensure the path is correct
-            router.replace('../(tabs)/Home'); // Adjust the path as needed
+            router.replace('../(tabs)/Home'); 
           }
         }
       }, 3000);
@@ -83,17 +83,18 @@ export default function SignUp() {
           <View style={{
             display: 'flex',
             alignItems: 'center',
-            paddingTop: 100,
+            paddingTop: 50,
             flexGrow: 1,
-            padding: 25,
+            padding: 20,
             backgroundColor: Colors.WHITE,
           }}>
             {!emailSent ?
               <>
-                <Image source={require('../../assets/images/logo.jpg')}
+                <Image source={require('../../assets/images/signup.jpg')}
                   style={{
-                    width: 180,
-                    height: 180,
+                    borderRadius:10,
+                    width: 250,
+                    height:200,
                   }}
                 />
 
@@ -119,13 +120,23 @@ export default function SignUp() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
-                <TextInput
-                  placeholder='Password'
-                  secureTextEntry={true}
-                  style={styles.textInput}
-                  onChangeText={(value) => setPassword(value)}
-                  value={password}
-                />
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    placeholder="Password"
+                    style={[styles.textInput, { flex: 1 }]}
+                    onChangeText={setPassword}
+                    value={password}
+                    secureTextEntry={!showPassword}
+                  />
+                  <Pressable
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.showPasswordButton}
+                  >
+                    <Text style={styles.showPasswordText}>
+                      {showPassword ? 'Hide' : 'Show'}
+                    </Text>
+                  </Pressable>
+                </View>
                 <TouchableOpacity
                   onPress={CreateNewAccount}
                   disabled={loading}
@@ -184,5 +195,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     borderRadius: 8,
     marginTop: 20,
-  }
+  },
+  passwordContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '100%',
+      marginTop: 5,
+    },
+    showPasswordButton: {
+      position: 'absolute',
+      top:'35%',
+      right: 15,
+      padding: 10,
+    },
+    showPasswordText: {
+      color: Colors.PRIMARY,
+      fontFamily: 'outfit-bold',
+    },
 });

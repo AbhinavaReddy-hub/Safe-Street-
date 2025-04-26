@@ -9,20 +9,29 @@ import { getDoc,doc } from "firebase/firestore";
 import { useContext } from "react";
 import { UserDetailContext } from "../context/UserDetailContext";
 import Button from "../components/Shared/Button";
+import * as SplashScreen from 'expo-splash-screen';
+
  export default function App(){
   const router = useRouter();
   const {userDetail,setUserDetail} = useContext(UserDetailContext);
 
 
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user && user.emailVerified) {
-        console.log("user already exists");
-        const result = await getDoc(doc(db, "users", user?.email));
-        console.log("user found redirecting to home ....");
-        setUserDetail(result.data());
-        router.replace("../(tabs)/Home"); 
-      }
+      try{
+        if (user && user.emailVerified) {
+          console.log("user already exists");
+          const result = await getDoc(doc(db, "users", user?.email));
+          console.log("user found redirecting to home ....");
+          setUserDetail(result.data());
+          router.replace("../(tabs)/Home"); 
+        }
+    }catch(e){
+      console.log("error: ",e);
+    }finally{
+      await SplashScreen.hideAsync(); 
+    }
     });
     return () => unsubscribe(); 
   }, []);
@@ -57,7 +66,7 @@ import Button from "../components/Shared/Button";
           color: Colors.WHITE,
           fontFamily: 'outfit-bold'
         }}
-        >Welcome to Road Damage Detector</Text>
+        >Welcome to Street Lens</Text>
         <Text
         style={{
           fontSize:20,
@@ -66,7 +75,7 @@ import Button from "../components/Shared/Button";
           textAlign:'center',
           fontFamily:'outfit'
         }}>
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Doloremque, temporibus.
+         Bridging Smart Tech and Public Service for the Roads of Tomorrow.
         </Text>
         <TouchableOpacity style={styles.button}
         onPress={()=>router.push('./auth/SignUp')}

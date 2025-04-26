@@ -4,12 +4,16 @@ import {useFonts} from 'expo-font';
 import {UserDetailContext} from '../context/UserDetailContext';
 import { useState } from 'react';
 import "../global.css";
+import 'expo-router/entry';
+import { preventAutoHideAsync } from 'expo-splash-screen';
+
+  preventAutoHideAsync();
+
 const RootLayout = () => {
   useFonts({
     'outfit': require('../assets/fonts/Outfit-Regular.ttf'),
     'outfit-bold': require('../assets/fonts/Outfit-Bold.ttf'),
   });
-
   const [userDetail,setUserDetail] = useState();
   return (
     // <View style={styles.container}>

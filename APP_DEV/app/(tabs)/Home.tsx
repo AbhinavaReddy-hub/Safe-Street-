@@ -102,7 +102,7 @@ export default function Home() {
   
 
       {/* Recent Reports */}
-      <View className="p-5 bg-white mt-3 mb-5 mx-2 rounded-xl" style={styles.shadow}>
+      <View className="p-5 bg-white mt-3 mb-14 mx-2 rounded-xl" style={styles.shadow}>
         <Text className="text-lg font-bold text-gray-900 mb-4">Recent Reports</Text>
         {mockUser.recentReports.map((report) => (
           <View key={report.id} className="flex-row bg-white rounded-xl mb-4 border border-gray-100 overflow-hidden">

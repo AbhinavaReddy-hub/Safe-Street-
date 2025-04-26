@@ -66,6 +66,7 @@ const pickImage = async () => {
 
   if (!result.canceled) {
     setSelectedImage(result.assets[0].uri);
+    // console.log(result.assets[0].exif);
     setPrediction(null);
   }
 };
@@ -221,7 +222,7 @@ const sendReport = async()=>{
                 onRequestClose={closeImage}
               />
             {prediction &&
-                <View className="mb-12 mx-2 mt-6 p-4 rounded-xl bg-gray-50 gap-3" style={styles.shadow}>
+                <View className="mb-14 mx-2 mt-6 p-4 rounded-xl bg-gray-50 gap-3" style={styles.shadow}>
                   <View> 
                     <Text className="text-2xl font-bold self-center">Analysis Result</Text>
                   </View>
@@ -279,8 +280,12 @@ const sendReport = async()=>{
                     </View>
                     <View className="items-center">
                       <TouchableOpacity
+                       style={{
+                        opacity: reportLoading? 0.7 : 1,
+                      }}
                         className="px-5 py-3 bg-amber-800 rounded-2xl items-center"
                         onPress={sendReport}
+                        disabled={reportLoading}
                       >{reportLoading? <ActivityIndicator size={24} color={'white'}/>:
                         <Text className="text-white text-xl">Send This Report</Text>
                         }
