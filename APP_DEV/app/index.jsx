@@ -26,8 +26,6 @@ import * as SplashScreen from 'expo-splash-screen';
           console.log("user found redirecting to home ....");
           setUserDetail(result.data());
           router.replace("../(tabs)/Home"); 
-        }else{
-          router.replace("./index");
         }
     }catch(e){
       console.log("error: ",e);
