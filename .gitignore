@@ -9,7 +9,9 @@ APP_DEV/.expo/
 APP_DEV/dist/
 APP_DEV/web-build/
 APP_DEV/expo-env.d.ts
-
+#Server
+server/node_modules
+server/env
 # Native
 *.orig.*
 *.jks
