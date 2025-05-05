@@ -1,8 +1,11 @@
-import React from 'react'
+import React from 'react';
+import Sidebar from '../SideBar/Sidebar';
 
 function Layout() {
   return (
-    <div>Layout</div>
+    <div>
+      <Sidebar/>
+    </div>
   )
 }
 
