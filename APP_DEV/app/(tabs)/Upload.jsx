@@ -66,7 +66,7 @@ const pickImage = async () => {
 
   if (!result.canceled) {
     setSelectedImage(result.assets[0].uri);
-    // console.log(result.assets[0].exif);
+    console.log(result.assets[0].exif);
     setPrediction(null);
   }
 };
@@ -81,6 +81,7 @@ const takePhoto = async () => {
 
   if (!result.canceled) {
     setSelectedImage(result.assets[0].uri);
+    console.log(result.assets[0].exif);
     setPrediction(null);
   }
 };
