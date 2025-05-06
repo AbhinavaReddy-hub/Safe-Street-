@@ -52,7 +52,7 @@ import * as SplashScreen from 'expo-splash-screen';
        }}
       />
       <View style={{
-        marginTop: 40,
+        marginTop:80,
         padding:25,
         backgroundColor:Colors.PRIMARY,
         height:'100%',
