@@ -1,10 +1,11 @@
 import React from 'react';
 import Sidebar from '../SideBar/Sidebar';
 
-function Layout() {
+function Layout({children}) {
   return (
-    <div>
+    <div className='h-screen w-screen flex'>
       <Sidebar/>
+      {children}
     </div>
   )
 }
