@@ -1,40 +1,103 @@
 
+// const mongoose = require('mongoose');
+
+// const reportSchema = new mongoose.Schema({
+//   imageUrl: {
+//     type: String,
+//     required: true
+//   },
+//   userId: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'User',
+//     required: true
+//   },
+//   location: {
+//     type: {
+//       type: String,
+//       default: 'Point'
+//     },
+//     coordinates: {
+//       type: [Number],
+//       required: true
+//     },
+//     address: String
+//   },
+//   damageType: String,
+//   severity: String,
+//   confidenceScore: Number,
+//   status: {
+//     type: String,
+//     default: 'pending'
+//   },
+//   description: {  // New field
+//     type: String,
+//     required: true
+//   }
+// }, { timestamps: true });
+
+// reportSchema.index({ location: '2dsphere' });
+
+// module.exports = mongoose.model('Report', reportSchema);
+
+
+
+
+
+
+
+
 const mongoose = require('mongoose');
 
 const reportSchema = new mongoose.Schema({
-  imageUrl: {
+  caseId: {
     type: String,
-    required: true
+    required: true,
+    unique: true, // Ensures caseId is unique
+  },
+  imageUrls: {
+    type: [String], // Array of Cloudinary URLs
+    required: true,
+    validate: {
+      validator: function (array) {
+        return array.length > 0; // Ensure at least one image URL
+      },
+      message: 'At least one image URL is required',
+    },
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   location: {
     type: {
       type: String,
-      default: 'Point'
+      default: 'Point',
     },
     coordinates: {
-      type: [Number],
-      required: true
+      type: [Number], // [longitude, latitude]
+      required: true,
     },
-    address: String
+    locationName: {
+      type: String, // Resolved area name from HERE Maps
+      required: true,
+    },
   },
-  damageType: String,
-  severity: String,
-  confidenceScore: Number,
+  trafficCongestionScore: {
+    type: Number, // Score from TomTom API
+    required: true,
+    min: 0, // Assuming score is non-negative
+  },
   status: {
     type: String,
-    default: 'pending'
+    default: 'pending',
+    enum: ['pending', 'in-progress', 'resolved'],
   },
-  description: {  // New field
-    type: String,
-    required: true
-  }
 }, { timestamps: true });
 
+// Indexes for efficient queries
 reportSchema.index({ location: '2dsphere' });
+reportSchema.index({ caseId: 1 });
+reportSchema.index({ userId: 1 });
 
 module.exports = mongoose.model('Report', reportSchema);
