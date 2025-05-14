@@ -1,26 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion, scale } from 'framer-motion';
 import { TbLayoutSidebarRightCollapse, TbLayoutSidebarRightExpand } from "react-icons/tb";
 import { FaRegCircleUser } from "react-icons/fa6";
 import { IoLogOutSharp } from "react-icons/io5";
+import { useCollapsed } from '../../context/collapse';
 
 const nav = ['Home', 'User Reports', 'Team Analytics', 'Insights'];
 
 function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [activeId, setActiveId] = useState('');
-
-  const sidebarVariants = {
-    open: { width: '17%' },
-    collapsed: { width: '5%' },
-  };
+  const {collapsed,setCollapsed} = useCollapsed();
+  const location = useLocation();
+  const locationMap = {
+    "/": "Home",
+    "/reports": "User Reports",
+    "/analytics": "Team Analytics",
+    "/insights": "Insights",
+  }
+  const [activeId, setActiveId] = useState(locationMap[location.pathname]);
+  useEffect(()=>{
+    setActiveId(()=>(locationMap[location.pathname]))
+  },[location.pathname])
+  
+  
 
   return (
     <motion.div
-      initial={{ width: 0 }}
-      animate={{ width: collapsed ? '0%' : '17%' }}
+      animate={{ width: collapsed ? '4rem' : '17%' }}
       transition={{ duration: 0.5, ease: 'easeInOut' }}
-      className="h-screen bg-amber-700/[20%] rounded-r-4xl "
+      className={`fixed h-screen ${!collapsed && "bg-amber-700/[20%]"} rounded-r-4xl`}
     >
       <div className="p-4 h-screen">
 
@@ -58,18 +67,32 @@ function Sidebar() {
 
 
               <div className="flex flex-col gap-2 items-center">
-                {nav.map((val, id) => (
-                  <motion.div
+                {nav.map((val, id) => {
+                  const routeMap={
+                    "Home": "/",
+                    "User Reports": "/reports",
+                    "Team Analytics": "/analytics",
+                    "Insights": "/insights",
+                  };
+                  return(
+                  <Link
+                    to={routeMap[val]}
                     key={id}
-                    whileHover={{ scale: 1.05 }}
-                    animate={activeId == val ? { scale: 1.05 } : {}}
-                    className={`px-4 py-2 font-medium rounded-lg ${val!=activeId && " hover:bg-gray-100"}  cursor-pointer ${activeId == '' && val == 'Home' ? "bg-amber-800 text-white" : activeId == val ? "bg-amber-800 text-white" : ""}`}
-
-                    onClick={() => setActiveId(val)}
-                  >
-                    {val}
-                  </motion.div>
-                ))}
+                    onClick={()=>setActiveId(val)}
+                    className="w-full flex justify-center"
+                  >                  
+                    <motion.div
+                      key={id}
+                      whileHover={{ scale: 1.05 }}
+                      animate={activeId == val ? { scale: 1.05 } : {}}
+                      className={`px-4 py-2 font-medium rounded-lg ${val!=activeId?"hover:bg-gray-100":""}  cursor-pointer ${activeId == val ? "bg-amber-800 text-white" : ""}`}
+                      onClick={() => setActiveId(val)}
+                    >
+                      {val}
+                    </motion.div>
+                  </Link>
+                  )
+                })}
               </div>
               <motion.div 
               whileHover={{backgroundColor:'#f3f4f6', borderRadius:'10px'}}
@@ -82,6 +105,7 @@ function Sidebar() {
 
         ) :
           <motion.div
+            className='w-[100px]'
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ scale: 0 }}
@@ -89,7 +113,7 @@ function Sidebar() {
 
           >
             <TbLayoutSidebarRightCollapse
-              className="text-3xl cursor-pointer mb-4"
+              className="text-3xl cursor-pointer block"
               onClick={() => setCollapsed(!collapsed)}
             />
           </motion.div>
