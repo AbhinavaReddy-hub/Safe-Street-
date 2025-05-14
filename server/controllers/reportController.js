@@ -1,210 +1,162 @@
-
 const Report = require('../models/Report');
-const User = require('../models/User');
+const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
 const cloudinary = require('../config/cloudinary');
 const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
 
-const generateDescription = (reportData, userData) => {
-    const confidencePercentage = Math.round((reportData.confidenceScore || 0) * 100);
-    const date = new Date().toLocaleString();
-    const location = reportData.location?.address || 
-                   `${reportData.location?.coordinates?.join(', ') || 'an unspecified location'}`;
-    
-    return `Our analysis of the submitted road imagery detected ${reportData.damageType ? `a ${reportData.damageType}` : 'road damage'} with ${reportData.severity ? `${reportData.severity} severity` : 'moderate impact'}. 
-    
-  Key observations:
-  - Damage classification: ${reportData.damageType || 'Unspecified road surface deterioration'} (${confidencePercentage}% confidence)
-  - Impact level: ${reportData.severity || 'Moderate'} severity
-  - Geographic coordinates: ${location}
-    
-  This report was ${userData?.name ? `submitted by ${userData.name}` : 'generated'} on ${date} and is currently ${reportData.status ? `marked as ${reportData.status}` : 'awaiting review'}. 
-  
-  Recommended next steps: ${getRecommendation(reportData.severity)}`;
-  };
-  
-  // Optional helper for recommendations
-  const getRecommendation = (severity) => {
-    switch(severity) {
-      case 'high': 
-        return 'Immediate repair recommended due to safety concerns.';
-      case 'medium': 
-        return 'Schedule repair within 2-4 weeks.';
-      case 'low':
-        return 'Monitor and include in next maintenance cycle.';
-      default:
-        return 'Further assessment recommended to determine appropriate action.';
-    }
-  };
-// Damage detection with demo data fallback
-const detectDamage = async (imageUrl) => {
+// Load environment variables
+require('dotenv').config();
+const HERE_API_KEY = process.env.HERE_API_KEY;
+const TOMTOM_API_KEY = process.env.TOMTOM_API_KEY;
+
+const createReport = async (req, res) => {
+  console.log('=== Starting Report Creation ===');
   try {
-    console.log('Calling damage detection API...');
-    const response = await axios.post(process.env.DAMAGE_DETECTION_API || 'http://localhost:8000/predict', {
-      image_url: imageUrl
-    });
-    console.log('API response:', response.data);
-    return response.data;
-  } catch (error) {
-    console.warn('API failed, using demo data. Error:', error.message);
-    
-    const demoResponses = [
-      { damageType: 'pothole', severity: 'high', confidenceScore: 0.92 },
-      { damageType: 'crack', severity: 'medium', confidenceScore: 0.87 },
-      { damageType: 'rutting', severity: 'low', confidenceScore: 0.78 },
-      { damageType: 'patch', severity: 'medium', confidenceScore: 0.85 },
-      { damageType: 'alligator_cracking', severity: 'high', confidenceScore: 0.91 }
-    ];
-    
-    const demoData = demoResponses[Math.floor(Math.random() * demoResponses.length)];
-    console.log('Selected demo data:', demoData);
-    return demoData;
-  }
-};
-
-exports.createReport = async (req, res) => {
-  let tempFilePath = null;
-  console.log('\n=== New Report Creation Started ===');
-  
-  try {
-    const { userId, lat, lng, address } = req.body;
-    const file = req.file;
-
-    // Validate input
-    if (!file) {
-      console.log('❌ No file uploaded');
+    if (!req.files || req.files.length === 0) {
+      console.log('Error: No images uploaded or Multer failed to parse files');
       return res.status(400).json({ 
         success: false,
-        error: 'No image file provided' 
+        error: 'At least one image is required' 
       });
     }
-    console.log(`📁 File received: ${file.originalname} (${file.size} bytes)`);
+    console.log(`Received ${req.files.length} image(s)`);
 
-    // Prepare file storage
-    tempFilePath = path.join(__dirname, '..', 'uploads', `${Date.now()}-${file.originalname}`);
-    
-    if (!fs.existsSync(path.dirname(tempFilePath))) {
-      console.log('📂 Creating uploads directory');
-      fs.mkdirSync(path.dirname(tempFilePath), { recursive: true });
+    const caseId = uuidv4();
+    console.log(`Generated caseId: ${caseId}`);
+
+    console.log('Uploading images to Cloudinary...');
+    const uploadPromises = req.files.map((file, index) => {
+      console.log(`Uploading file ${index + 1}: ${file.originalname}`);
+      return cloudinary.uploader.upload(file.path, {
+        folder: 'safe-street-reports',
+        transformation: [{ width: 800, quality: 'auto', fetch_format: 'auto' }],
+      }).catch(err => {
+        console.error(`Cloudinary upload failed for ${file.originalname}:`, err.message);
+        throw new Error(`Cloudinary upload failed: ${err.message}`);
+      });
+    });
+    const results = await Promise.all(uploadPromises);
+    const imageUrls = results.map((result, index) => {
+      console.log(`Uploaded file ${index + 1}: ${result.secure_url}`);
+      return result.secure_url;
+    });
+    console.log(`Uploaded ${imageUrls.length} image(s) to Cloudinary`);
+
+    req.files.forEach((file) => {
+      fs.unlink(file.path, (err) => {
+        if (err) console.error(`Failed to delete temp file ${file.path}:`, err);
+        else console.log(`Deleted temp file: ${file.path}`);
+      });
+    });
+
+    console.log('Fetching approximate location...');
+    const ipGeoResponse = await axios.get('http://ip-api.com/json').catch(err => {
+      console.error('IP geolocation failed:', err.message);
+      throw new Error(`IP geolocation failed: ${err.message}`);
+    });
+    const { lat: latitude, lon: longitude } = ipGeoResponse.data;
+
+    if (!latitude || !longitude) {
+      console.log('Error: Unable to fetch location');
+      return res.status(400).json({ 
+        success: false,
+        error: 'Unable to fetch location' 
+      });
+    }
+    console.log(`Location fetched: (${latitude}, ${longitude})`);
+
+    console.log('Resolving location name with HERE Maps...');
+    let locationName = 'Unknown Location';
+    try {
+      const hereReverseGeoUrl = `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${latitude},${longitude}&apiKey=${HERE_API_KEY}`;
+      const hereResponse = await axios.get(hereReverseGeoUrl);
+      if (hereResponse.status !== 200) {
+        console.log('Error: Failed to resolve location name');
+        throw new Error('Failed to fetch location name from HERE Maps');
+      }
+      locationName = hereResponse.data.items[0]?.title || 'Unknown Location';
+      console.log(`Location name: ${locationName}`);
+    } catch (err) {
+      console.error('HERE Maps reverse geocoding failed:', err.message);
+      console.log('Proceeding with default location name:', locationName);
     }
 
-    // Save file temporarily
-    await fs.promises.rename(file.path, tempFilePath);
-    console.log(`💾 File stored temporarily at: ${tempFilePath}`);
+    console.log('Fetching traffic congestion with TomTom...');
+    let trafficCongestionScore = 0;
+    try {
+      const tomTomUrl = `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?key=${TOMTOM_API_KEY}&point=${latitude},${longitude}`;
+      const tomTomResponse = await axios.get(tomTomUrl);
+      if (tomTomResponse.status !== 200) {
+        console.log('Error: Failed to fetch traffic data');
+        throw new Error('Failed to fetch traffic data from TomTom');
+      }
+      const flowData = tomTomResponse.data.flowSegmentData;
+      const currentSpeed = flowData.currentSpeed || 0;
+      const freeFlowSpeed = flowData.freeFlowSpeed || 1;
+      let congestion = Math.min(10 * (1 - currentSpeed / freeFlowSpeed), 10);
+      congestion = Math.max(congestion, 0);
+      trafficCongestionScore = Math.round(congestion * 10) / 10;
+      console.log(`Traffic congestion score: ${trafficCongestionScore}`);
+    } catch (err) {
+      console.error('TomTom traffic API failed:', err.message);
+      console.log('Proceeding with default traffic congestion score:', trafficCongestionScore);
+    }
 
-    // Upload to Cloudinary
-    console.log('☁️ Uploading to Cloudinary...');
-    const cloudinaryResult = await cloudinary.uploader.upload(tempFilePath, {
-      folder: 'road-damage-reports',
-      quality: 'auto:good',
-      transformation: [{ width: 800, height: 600, crop: 'limit' }]
-    });
-    console.log(`✅ Cloudinary upload successful: ${cloudinaryResult.secure_url}`);
-
-    // Damage detection
-    console.log('🔍 Analyzing damage...');
-    const damageData = await detectDamage(cloudinaryResult.secure_url);
-    console.log('📊 Damage analysis results:', damageData);
-    
-    // Get reporter info
-    const user = await User.findById(userId).select('name email').lean() || {};
-    console.log(`👤 Reporter: ${user.name || userId}`);
-
-    // Prepare report data
     const reportData = {
-      imageUrl: cloudinaryResult.secure_url,
-      userId,
+      caseId,
+      imageUrls,
+      userId: req.user._id,
       location: {
         type: 'Point',
-        coordinates: [parseFloat(lng), parseFloat(lat)],
-        address: address || null
+        coordinates: [latitude,longitude],
+        locationName,
       },
-      damageType: damageData.damageType,
-      severity: damageData.severity,
-      confidenceScore: damageData.confidenceScore,
+      trafficCongestionScore,
       status: 'pending',
-      description: generateDescription(
-        {
-          ...damageData,
-          location: { coordinates: [lng, lat], address },
-          userId,
-          status: 'pending'
-        },
-        user
-      )
     };
-    console.log('📝 Generated description:', reportData.description.replace(/\n/g, ' '));
+    console.log('Saving report to Reports collection...');
 
-    // Create report
-    const report = await Report.create(reportData);
-    console.log(`✅ Report created successfully (ID: ${report._id})`);
-
-    // Cleanup
-    try {
-      fs.unlinkSync(tempFilePath);
-      console.log('🧹 Temporary file cleaned up');
-    } catch (cleanupError) {
-      console.error('⚠️ Temp file cleanup failed:', cleanupError);
-    }
+    const report = await Report.create(reportData).catch(err => {
+      console.error('MongoDB save failed:', err.message);
+      throw new Error(`MongoDB save failed: ${err.message}`);
+    });
+    console.log(`Report saved successfully (ID: ${report._id})`);
 
     return res.status(201).json({
       success: true,
-      data: report
+      data: report,
     });
-
   } catch (error) {
-    console.error('❌ Report creation failed:', error);
-    
-    // Cleanup on error
-    if (tempFilePath && fs.existsSync(tempFilePath)) {
-      try {
-        fs.unlinkSync(tempFilePath);
-        console.log('🧹 Cleaned up temp file after error');
-      } catch (cleanupError) {
-        console.error('⚠️ Error during cleanup:', cleanupError);
-      }
-    }
-
+    console.error('Report creation failed:', error.message);
     return res.status(500).json({
       success: false,
       error: 'Failed to create report',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
 
-exports.getReports = async (req, res) => {
+const getReports = async (req, res) => {
   try {
-    console.log('\n=== Fetching Reports ===');
-    const { status, userId, damageType, severity } = req.query;
-    const filter = {};
-    
-    if (status) filter.status = status;
-    if (userId) filter.userId = userId;
-    if (damageType) filter.damageType = damageType;
-    if (severity) filter.severity = severity;
-
-    console.log('🔎 Filter criteria:', filter);
-
-    const reports = await Report.find(filter)
+    console.log('=== Fetching Reports ===');
+    const reports = await Report.find({ userId: req.user._id })
       .populate('userId', 'name email')
       .sort({ createdAt: -1 })
       .lean();
-
-    console.log(`📊 Found ${reports.length} reports`);
+    console.log(`Found ${reports.length} reports`);
     return res.status(200).json({
       success: true,
       count: reports.length,
-      data: reports
+      data: reports,
     });
-
   } catch (error) {
-    console.error('❌ Failed to fetch reports:', error);
+    console.error('Failed to fetch reports:', error.message);
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch reports',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
+
+module.exports = { createReport, getReports };
