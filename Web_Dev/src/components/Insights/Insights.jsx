@@ -1,11 +1,10 @@
 import React from 'react'
-import { motion } from 'framer-motion';
-import { useCollapsed } from '../../context/collapse';
-
-function Reports() {
-  const {collapsed,setCollapsed} = useCollapsed();
+import { motion } from 'framer-motion'
+import { useCollapsed } from '../../context/collapse'
+function Insights() {
+    const {collapsed,setCollapsed} = useCollapsed();
   return (
-     <motion.div
+    <motion.div
      initial={{marginLeft:"21%"}}
        animate={{ marginLeft: collapsed ? "4rem" : "21%" }}
        transition={{ duration: 0.5, ease: "easeInOut" }}     
@@ -22,4 +21,4 @@ function Reports() {
   )
 }
 
-export default Reports
+export default Insights
