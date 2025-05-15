@@ -1,84 +1,38 @@
-// const express = require('express');
-// const router = express.Router();
-// const reportController = require('../controllers/reportController');
-// const upload = require('../middleware/uploadMiddleware');
-// const authMiddleware = require('../middleware/authMiddleware');
-
-// router.post(
-//   '/',
-//   authMiddleware.protect,
-//   upload.single('image'),
-//   reportController.createReport
-// );
-
-// router.get(
-//   '/',
-//   authMiddleware.protect,
-//   reportController.getReports
-// );
-
-// module.exports = router;
-
-
-
-
-
-
-
-
-
-// const express = require('express');
-// const router = express.Router();
-// const reportController = require('../controllers/reportController');
-// const authMiddleware = require('../middleware/authMiddleware');
-// const { upload, cleanupOnError } = require('../middleware/uploadMiddleware');
-
-// router.post(
-//   '/',
-//   authMiddleware.protect,
-//   upload, // Handles multiple image uploads under 'images' field
-//   cleanupOnError, // Cleans up temporary files on error
-//   reportController.createReport
-// );
-
-// router.get(
-//   '/',
-//   authMiddleware.protect,
-//   reportController.getReports
-// );
-
-// module.exports = router;
-
-
 
 const express = require('express');
-   const router = express.Router();
-   const reportController = require('../controllers/reportController');
-   const authMiddleware = require('../middleware/authMiddleware');
-   const { upload, handleMulterErrors, cleanupOnError } = require('../middleware/uploadMiddleware');
+const router  = express.Router();
 
-   // Debug middleware to log incoming form data
-   const debugFormData = (req, res, next) => {
-     console.log('Incoming request to /api/reports');
-     console.log('Headers:', req.headers['content-type']);
-     console.log('Body:', req.body);
-     next();
-   };
+const { createReport, getReports } = require('../controllers/reportController');
+const auth                         = require('../middleware/authMiddleware');
+const {
+  upload,
+  handleMulterErrors,
+  cleanupOnError
+} = require('../middleware/uploadMiddleware');
 
-   router.post(
-     '/',
-     authMiddleware.protect,
-     debugFormData, // Add debugging
-     upload,
-     handleMulterErrors,
-     cleanupOnError,
-     reportController.createReport
-   );
+// Debug form-data
+const debugForm = (req, res, next) => {
+  console.log('→ POST /api/reports');
+  console.log('  Content-Type:', req.headers['content-type']);
+  console.log('  Body fields:', req.body);
+  console.log('  File count:', req.files?.length || 0);
+  next();
+};
 
-   router.get(
-     '/',
-     authMiddleware.protect,
-     reportController.getReports
-   );
+router.post(
+  '/',
+  auth.protect,
+  debugForm,
+  upload,               // does .array('images')
+  handleMulterErrors,
+  cleanupOnError,
+  createReport
+);
 
-   module.exports = router;
+router.get(
+  '/',
+  auth.protect,
+  getReports
+);
+
+module.exports = router;
