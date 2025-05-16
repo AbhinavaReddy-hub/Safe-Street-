@@ -58,12 +58,12 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('MongoDB connected successfully');
 
-    // Schedule batch job every 2 minutes (once DB is ready)
-    cron.schedule('*/2 * * * *', () => {
+    // Schedule batch job every 10 minutes (once DB is ready)
+    cron.schedule('*/3 * * * *', () => {
       console.log('⏰ Triggering batch job');
       runBatch();
     });
-    console.log('🗓️  Batch job scheduled: every 2 minutes');
+    console.log('🗓️  Batch job scheduled: every 3 minutes');
   })
   .catch(err => console.error('MongoDB connection error:', err));
 

@@ -1,59 +1,62 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const reportSchema = new mongoose.Schema({
-  caseId: {
-    type: String,
-    required: true,
-    unique: true, // Ensures caseId is unique
-  },
-  imageUrls: {
-    type: [String], // Array of Cloudinary URLs
-    required: true,
-    validate: {
-      validator: function (array) {
-        return array.length > 0; // Ensure at least one image URL
-      },
-      message: 'At least one image URL is required',
-    },
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  location: {
-    type: {
+const reportSchema = new mongoose.Schema(
+  {
+    caseId: {
       type: String,
-      default: 'Point',
+      required: true,
+      unique: true, // Ensures caseId is unique
     },
-    coordinates: {
-      type: [Number], // [longitude, latitude]
+    imageUrls: {
+      type: [String], // Array of Cloudinary URLs
+      required: true,
+      validate: {
+        validator: function (array) {
+          return array.length > 0; // Ensure at least one image URL
+        },
+        message: "At least one image URL is required",
+      },
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
-    locationName: {
-      type: String, // Resolved area name from HERE Maps
-      required: true,
+    location: {
+      type: {
+        type: String,
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+      },
+      locationName: {
+        type: String, // Resolved area name from HERE Maps
+        required: true,
+      },
     },
+    trafficCongestionScore: {
+      type: Number, // Score from TomTom API
+      required: true,
+      min: 0, // Assuming score is non-negative
+    },
+    status: {
+      type: String,
+      default: "pending",
+      enum: ["pending", "analyzed", "in-progress", "resolved"],
+    },
+    confidenceScore: { type: Number, default: 0 },
+    damageType: { type: String, default: null },
+    severity: { type: String, default: null },
+    priorityScore: { type: Number, default: 0 },
   },
-  trafficCongestionScore: {
-    type: Number, // Score from TomTom API
-    required: true,
-    min: 0, // Assuming score is non-negative
-  },
-  status: {
-    type: String,
-    default: 'pending',
-    enum: ['pending', 'in-progress', 'resolved'],
-  },
-  confidenceScore: { type: Number, default: 0 },
-  damageType:      { type: String, default: null },
-  severity:        { type: String, default: null },
-  priorityScore:   { type: Number, default: 0 },
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 // Indexes for efficient queries
-reportSchema.index({ location: '2dsphere' });
+reportSchema.index({ location: "2dsphere" });
 reportSchema.index({ caseId: 1 });
 reportSchema.index({ userId: 1 });
 
-module.exports = mongoose.model('Report', reportSchema);
+module.exports = mongoose.model("Report", reportSchema);
