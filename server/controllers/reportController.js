@@ -9,6 +9,18 @@ require('dotenv').config();
 const HERE_API_KEY = process.env.HERE_API_KEY;
 const TOMTOM_API_KEY = process.env.TOMTOM_API_KEY;
 
+// Haversine function to calculate distance between two points in meters
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // Earth's radius in meters
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 const createReport = async (req, res) => {
   console.log('=== Starting Report Creation ===');
   try {
@@ -23,6 +35,61 @@ const createReport = async (req, res) => {
 
     const caseId = uuidv4();
     console.log(`Generated caseId: ${caseId}`);
+
+    console.log('Fetching approximate location...');
+    const ipGeoResponse = await axios.get('http://ip-api.com/json').catch(err => {
+      console.error('IP geolocation failed:', err.message);
+      throw new Error(`IP geolocation failed: ${err.message}`);
+    });
+  M
+    // const { lat: latitude, lon: longitude } = ipGeoResponse.data;
+ const latitude=17.060799;
+    const longitude = 79.267119;
+    if (!latitude || !longitude) {
+      console.log('Error: Unable to fetch location');
+      return res.status(400).json({ 
+        success: false,
+        error: 'Unable to fetch location' 
+      });
+    }
+    console.log(`Location fetched: (${latitude}, ${longitude})`);
+
+    // Check for existing reports within 100 meters before uploading to Cloudinary
+    console.log('Checking for existing reports within 100 meters...');
+    const DISTANCE_THRESHOLD = 20; // meters
+    const nearbyReports = await Report.find({
+      location: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [longitude, latitude]
+          },
+          $maxDistance: DISTANCE_THRESHOLD // in meters
+        }
+      }
+    }).lean();
+
+    if (nearbyReports.length > 0) {
+      console.log(`Found ${nearbyReports.length} nearby report(s)`);
+      const hasAnalyzed = nearbyReports.some(report => report.status === 'analyzed');
+      if (hasAnalyzed) {
+        console.log('Found analyzed report(s), rejecting new report');
+        // Delete temporary files
+        req.files.forEach((file) => {
+          fs.unlink(file.path, (err) => {
+            if (err) console.error(`Failed to delete temp file ${file.path}:`, err);
+            else console.log(`Deleted temp file: ${file.path}`);
+          });
+        });
+        return res.status(400).json({
+          success: false,
+          error: 'Already reported, work in progress'
+        });
+      }
+      console.log('Only pending report(s) found, proceeding with new report');
+    } else {
+      console.log('No nearby reports found, proceeding with new report');
+    }
 
     console.log('Uploading images to Cloudinary...');
     const uploadPromises = req.files.map((file, index) => {
@@ -42,28 +109,13 @@ const createReport = async (req, res) => {
     });
     console.log(`Uploaded ${imageUrls.length} image(s) to Cloudinary`);
 
+    // Delete temporary files after successful upload
     req.files.forEach((file) => {
       fs.unlink(file.path, (err) => {
         if (err) console.error(`Failed to delete temp file ${file.path}:`, err);
         else console.log(`Deleted temp file: ${file.path}`);
       });
     });
-
-    console.log('Fetching approximate location...');
-    const ipGeoResponse = await axios.get('http://ip-api.com/json').catch(err => {
-      console.error('IP geolocation failed:', err.message);
-      throw new Error(`IP geolocation failed: ${err.message}`);
-    });
-    const { lat: latitude, lon: longitude } = ipGeoResponse.data;
-
-    if (!latitude || !longitude) {
-      console.log('Error: Unable to fetch location');
-      return res.status(400).json({ 
-        success: false,
-        error: 'Unable to fetch location' 
-      });
-    }
-    console.log(`Location fetched: (${latitude}, ${longitude})`);
 
     console.log('Resolving location name with HERE Maps...');
     let locationName = 'Unknown Location';
@@ -108,7 +160,7 @@ const createReport = async (req, res) => {
       userId: req.user._id,
       location: {
         type: 'Point',
-        coordinates: [latitude,longitude],
+        coordinates: [longitude, latitude],
         locationName,
       },
       trafficCongestionScore,
@@ -127,6 +179,15 @@ const createReport = async (req, res) => {
       data: report,
     });
   } catch (error) {
+    // Ensure temporary files are deleted on error
+    if (req.files) {
+      req.files.forEach((file) => {
+        fs.unlink(file.path, (err) => {
+          if (err) console.error(`Failed to delete temp file ${file.path}:`, err);
+          else console.log(`Deleted temp file: ${file.path}`);
+        });
+      });
+    }
     console.error('Report creation failed:', error.message);
     return res.status(500).json({
       success: false,
