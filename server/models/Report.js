@@ -90,14 +90,19 @@ const reportSchema = new mongoose.Schema({
   },
   status: {
     type: String,
+    enum: ['pending', 'analyzed', 'assigned', 'completed'],
     default: 'pending',
-    enum: ['pending', 'in-progress', 'resolved'],
   },
+  h3Cell: {
+    type: String,
+    required: true, // H3 cell ID at resolution 12
+  },
+  assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Assignment' }
 }, { timestamps: true });
 
 // Indexes for efficient queries
 reportSchema.index({ location: '2dsphere' });
 reportSchema.index({ caseId: 1 });
 reportSchema.index({ userId: 1 });
-
+reportSchema.index({ h3Cell: 1 }); 
 module.exports = mongoose.model('Report', reportSchema);
