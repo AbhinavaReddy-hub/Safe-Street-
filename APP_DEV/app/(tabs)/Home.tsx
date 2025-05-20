@@ -1,4 +1,5 @@
 import { View, Text, ScrollView, Image, TouchableOpacity ,StyleSheet} from 'react-native';
+import {Stack} from 'expo-router';
 import DefaultLayout from '../../components/Shared/DefaultLayout';
 import Header from '@/components/Home/Header';
 import { useRouter } from 'expo-router';
@@ -73,7 +74,7 @@ export default function Home() {
 
   return (
     <DefaultLayout>
-      
+    
     <ScrollView className="flex-1 bg-gray-50">
       {/* Stats Section */}
       <Header/>

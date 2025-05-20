@@ -5,6 +5,7 @@ import ImageViewing from 'react-native-image-viewing';
 import DefaultLayout from "../../components/Shared/DefaultLayout";
 import { Camera, MapPin, Calendar } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import uploadimg from '../../assets/images/upload.png';
 import React from 'react'
 
 
@@ -195,7 +196,7 @@ const sendReport = async()=>{
             ) : (
               <View className="border-[1px] border-black p-4 rounded-xl" >
                 <Image 
-                  source={require('../../assets/images/upload.png')} 
+                  source={uploadimg} 
                   className="w-[150px] h-[150px] rounded-xl"
                 />
               </View>

@@ -1,3 +1,4 @@
+import '../global.css';
 import { Text,View,TouchableOpacity,Image,StyleSheet } from "react-native";
 import {StatusBar} from 'expo-status-bar';
 import {Link,useRouter} from 'expo-router';
@@ -10,12 +11,15 @@ import { useContext } from "react";
 import { UserDetailContext } from "../context/UserDetailContext";
 import Button from "../components/Shared/Button";
 import * as SplashScreen from 'expo-splash-screen';
+import rdamage from '../assets/images/road_damage.png';
+
+
 
  export default function App(){
   const router = useRouter();
   const {userDetail,setUserDetail} = useContext(UserDetailContext);
 
-
+ 
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -41,7 +45,7 @@ import * as SplashScreen from 'expo-splash-screen';
       flex: 1,
       backgroundColor:Colors.WHITE,
     }}>
-      <Image source={require('../assets/images/road_damage.png')}
+      <Image source={rdamage}
        style={{
         borderRadius: 10,
         width:'80%',
@@ -78,7 +82,7 @@ import * as SplashScreen from 'expo-splash-screen';
          Bridging Smart Tech and Public Service for the Roads of Tomorrow.
         </Text>
         <TouchableOpacity style={styles.button}
-        onPress={()=>router.push('./auth/SignUp')}
+        onPress={()=>router.push("./auth/SignIn")}
         >
           <Text style={[styles.buttonText,{color:Colors.PRIMARY}]}>Get Started</Text>
         </TouchableOpacity>

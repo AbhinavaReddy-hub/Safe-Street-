@@ -6,6 +6,7 @@ import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/
 import { auth, db } from '../../config/fireBaseConfig';
 import { setDoc, doc } from 'firebase/firestore';
 import { UserDetailContext } from '../../context/UserDetailContext';
+import signup from '../../assets/images/signup.jpg';
 
 export default function SignUp() {
   const router = useRouter();
@@ -90,7 +91,7 @@ export default function SignUp() {
           }}>
             {!emailSent ?
               <>
-                <Image source={require('../../assets/images/signup.jpg')}
+                <Image source={signup}
                   style={{
                     borderRadius:10,
                     width: 250,
@@ -185,6 +186,8 @@ export default function SignUp() {
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
+
+  
 }
 
 const styles = StyleSheet.create({

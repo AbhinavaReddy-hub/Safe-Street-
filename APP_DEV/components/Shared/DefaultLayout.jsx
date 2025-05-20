@@ -1,5 +1,8 @@
 // components/DefaultLayout.js
-import { View ,Text,ScrollView, Button, Pressable,Modal, TouchableWithoutFeedback} from 'react-native';
+import { View ,Text,ScrollView, Button, Pressable,Modal, TouchableWithoutFeedback,Platform} from 'react-native';
+ 
+import { useEffect } from 'react';
+import {Stack} from 'expo-router';
 import Footer from '../Home/Footer';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Header from "../Home/Header";
@@ -7,6 +10,8 @@ import { useContext } from 'react';
 import {UserDetailContext} from '../../context/UserDetailContext';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 const DefaultLayout = ({ children }) => {
   const [isNotifOpen, setNotifOpen] = useState(false);
@@ -77,18 +82,22 @@ const mockUser = {
         return 'bg-gray-500';
     }
   };
-
+  const insets = useSafeAreaInsets(); 
+ 
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Page Content */}
-      <View style={{ flex: 1 }}>
-        {children}
-      </View>
+    <>
+  
+      <View style={{ flex: 1 ,paddingBottom: insets.bottom}}>
+        {/* Page Content */}
+        <View style={{ flex: 1 }}>
+          {children}
+        </View>
 
-     
-      <Footer/>
-    </View>
+      
+        <Footer/>
+      </View>
+    </>
   );
 };
 

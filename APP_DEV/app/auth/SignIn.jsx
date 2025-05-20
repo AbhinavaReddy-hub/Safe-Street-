@@ -21,6 +21,8 @@ import { auth, db } from '../../config/fireBaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { getDoc, doc } from 'firebase/firestore';
 import { UserDetailContext } from '../../context/UserDetailContext';
+import signin from '../../assets/images/login.jpg';
+
 
 export default function SignIn() {
   const router = useRouter();
@@ -97,7 +99,7 @@ export default function SignIn() {
           keyboardShouldPersistTaps="handled"
         >
           <Image
-            source={require('../../assets/images/login.jpg')}
+            source={signin}
             style={styles.logo}
           />
 
