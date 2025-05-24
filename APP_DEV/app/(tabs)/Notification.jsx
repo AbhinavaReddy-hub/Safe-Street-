@@ -93,7 +93,7 @@ const Notification = () => {
         <DefaultLayout>
           <ScrollView className="flex-1 bg-gray-50 px-3">
             <View>
-              <Text className="mt-[20px] text-center font-bold text-2xl mb-4">Messages</Text>
+              <Text className="mt-[30px] text-center font-bold text-2xl mb-4">Messages</Text>
             </View>
           {notifications.map((data) => (
             <View key={data.id} className="mb-3 p-2 bg-white rounded-lg flex-1 flex-row gap-2 " style={styles.shadow}>

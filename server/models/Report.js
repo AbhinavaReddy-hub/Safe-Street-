@@ -93,6 +93,10 @@ const reportSchema = new mongoose.Schema({
     enum: ['pending', 'analyzed', 'assigned', 'completed'],
     default: 'pending',
   },
+  message: {
+    type:String,
+    default: "None",
+  },
   h3Cell: {
     type: String,
     required: true, // H3 cell ID at resolution 12

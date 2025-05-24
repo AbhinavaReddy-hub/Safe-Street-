@@ -1,16 +1,11 @@
 {
   "expo": {
-    "name": "Street Lens",
-    "slug": "Street Lens",
+    "name": "safestreet",
+    "slug": "safestreet",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/images/logo.png",
-    "scheme": "myapp",
-    "splash": {
-      "image": "./assets/images/logo.png",
-      "resizeMode": "contain", 
-      "backgroundColor": "#000000"
-    },
+    "icon": "./assets/images/icon.png",
+    "scheme": "safestreet",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -18,9 +13,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",

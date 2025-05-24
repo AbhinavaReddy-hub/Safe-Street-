@@ -1,19 +1,22 @@
 import { View, Text, Pressable } from 'react-native';
-import React from 'react';
+import React, { useContext } from 'react';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { UserDetailContext } from '@/context/UserDetailContext';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useRouter, usePathname } from 'expo-router';
 
 const Footer = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const {userDetail, setUserDetail} = useContext(UserDetailContext);
 
   const isActive = (path) => pathname === path;
 
   return (
+    
     <View className="pt-2 pb-2 bottom-0 flex-row justify-around items-center bg-amber-800/[40%]">
       <Pressable
         className="flex-col gap-1 items-center justify-center "
@@ -21,13 +24,21 @@ const Footer = () => {
         <MaterialIcons name="home" size={24} color={isActive('/Home') ? 'white' : 'black'} />
         <Text className={`text-16 ${isActive('/Home') ? 'text-white' : 'text-black'}`}>Home</Text>
       </Pressable>
-
-      <Pressable
-        className="flex-col gap-1 items-center justify-center"
-        onPress={() => router.replace('/Tasks')}>
-        <FontAwesome5 name="tasks" size={24} color={isActive('/Tasks') ? 'white' : 'black'} />
-        <Text className={`text-16 ${isActive('/Tasks') ? 'text-white' : 'text-black'}`}>My Tasks</Text>
-      </Pressable>
+      {userDetail?.role==='worker'?
+        <Pressable
+          className="flex-col gap-1 items-center justify-center"
+          onPress={() => router.replace('/Tasks')}>
+          <FontAwesome5 name="tasks" size={24} color={isActive('/Tasks') ? 'white' : 'black'} />
+          <Text className={`text-16 ${isActive('/Tasks') ? 'text-white' : 'text-black'}`}>My Tasks</Text>
+        </Pressable>
+        :
+         <Pressable
+          className="flex-col gap-1 items-center justify-center"
+          onPress={() => router.replace('/History')}>
+          <FontAwesome5 name="history" size={24} color={isActive('/History') ? 'white' : 'black'} />
+          <Text className={`text-16 ${isActive('/Tasks') ? 'text-white' : 'text-black'}`}>My History</Text>
+        </Pressable>
+        }
       <Pressable
         className="flex-col gap items-center justify-center absolute bottom-4 left-[39%] border-gray-50 border-[6px]  rounded-full p-3 bg-amber-800"
         onPress={() => router.replace('/Upload')}>

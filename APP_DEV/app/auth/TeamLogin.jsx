@@ -17,84 +17,76 @@ import {
 import React, { useContext, useState } from 'react';
 import Colors from '../../constants/Colors';
 import { useRouter } from 'expo-router';
-import { auth, db } from '../../config/fireBaseConfig';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { getDoc, doc } from 'firebase/firestore';
 import { UserDetailContext } from '../../context/UserDetailContext';
 import signin from '../../assets/images/login.jpg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-export default function SignIn() {
+
+
+export default function TeamLogin() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { setUserDetail } = useContext(UserDetailContext);
+  const {userDetail, setUserDetail } = useContext(UserDetailContext);
 
+ class TeamNotFoundError extends Error {
+  constructor(message = "Team does not exist. Please get the credentials from the authority.") {
+    super(message);
+    this.name = "TeamNotFoundError";
+  }
+}
+ 
   const onSignin = async () => {
     if (!email || !pass) {
       ToastAndroid.show('Please fill in all fields.', ToastAndroid.SHORT);
       return;
     }
 
-    if (!validateEmail(email)) {
-      ToastAndroid.show('Please enter a valid email address.', ToastAndroid.SHORT);
-      return;
-    }
+   
 
     setLoading(true);
     try {
-      const resp = await signInWithEmailAndPassword(auth, email, pass);
-      // const mongores = await fetch("http://192.168.43.97:3000/api/auth/login",{
-      //    method: 'POST',
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //     },
-      //     body: JSON.stringify({
+      const mongores = await fetch("http://192.168.43.97:3000/api/auth/login",{
+         method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
          
-      //       email: email,
-      //       password: pass,
+            email: email,
+            password: pass,
           
-      //     }),
-      // });
-      // const mongojson = await mongores.json()
-      // console.log(mongojson);
-      // const user = resp.user;
+          }),
+      });
+      const mongojson = await mongores.json()
+      console.log(mongojson);
+     
+      if (mongojson.status === "success" && mongojson.data?.user?.role === "worker") {
+        const user = mongojson.data.user;
+        await AsyncStorage.setItem('userToken', mongojson.token);
+        await AsyncStorage.setItem('userData', JSON.stringify(user));
 
-      // Reload user to get the latest email verification status
-      await user.reload();
-
-      if (!user.emailVerified) {
-        ToastAndroid.show('Please verify your email before logging in.', ToastAndroid.LONG);
-        setLoading(false);
-        return;
+        setUserDetail(user);
+        console.log(userDetail);
+        router.replace('../(tabs)/Home');
+      }else{
+        throw new TeamNotFoundError();
       }
 
-      await getUserDetails();
-      router.replace('../(tabs)/Home');
+    
+      
     } catch (e) {
       console.error(e);
-      ToastAndroid.show('Incorrect Email or Password', ToastAndroid.SHORT);
+      ToastAndroid.show({e}, ToastAndroid.SHORT);
     } finally {
       setLoading(false);
     }
   };
 
-  const getUserDetails = async () => {
-    try {
-      const result = await getDoc(doc(db, 'users', email));
-      if (result.exists()) {
-        setUserDetail(result.data());
-      } else {
-        console.warn('User details not found');
-        ToastAndroid.show('User details not found. Please contact support.', ToastAndroid.SHORT);
-      }
-    } catch (error) {
-      console.error('Error fetching user details:', error);
-      ToastAndroid.show('Failed to fetch user details. Please try again.', ToastAndroid.SHORT);
-    }
-  };
+ 
 
   const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -157,13 +149,6 @@ export default function SignIn() {
               <Text style={styles.signInButtonText}>Sign In</Text>
             )}
           </TouchableOpacity>
-
-          <View style={styles.signUpContainer}>
-            <Text style={styles.signUpText}>Don't have an account?</Text>
-            <Pressable onPress={() => router.push('/auth/SignUp')}>
-              <Text style={styles.signUpLink}>Sign Up Here</Text>
-            </Pressable>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>

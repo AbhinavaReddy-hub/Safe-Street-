@@ -1,42 +1,83 @@
 import { View, Text, ScrollView,StyleSheet, TouchableOpacity,Image, ToastAndroid, ActivityIndicator, Pressable, TextInput } from 'react-native';
-import { useState,useEffect } from 'react';
+import { useState,useEffect, useContext } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImageViewing from 'react-native-image-viewing';
 import DefaultLayout from "../../components/Shared/DefaultLayout";
+import { UserDetailContext } from '../../context/UserDetailContext';
 import { Camera, MapPin, Calendar } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import uploadimg from '../../assets/images/upload.png';
+import * as Location from 'expo-location';
 import React from 'react'
 
 
+const BACKEND_URL = 'http://192.168.43.97:3000'; 
 const Upload = () => {
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [selectedImages, setSelectedImages] = useState([]); 
   const [loading, setLoading] = useState(false);
-  const [prediction, setPrediction] = useState(null);
-  const[message,setMessage] = useState("");
-  const[reportLoading,setReportLoading]=useState(false);
-  const[isSent,setIsSent] = useState(false);
-  const[isMessage,setIsMessage] = useState(false);
-  
-    const [isImageViewVisible, setIsImageViewVisible] = useState(false);
-    const [currentImage, setCurrentImage] = useState(null);
-    const openImage = (uri) => {
-      setCurrentImage([{ uri }]);
-      setIsImageViewVisible(true);
-    };
-    
-    const closeImage = () => {
-      setIsImageViewVisible(false);
-    };
+  const [prediction, setPrediction] = useState(null); 
+  const [message, setMessage] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportStatusMessage, setReportStatusMessage] = useState(null);
+  const { userDetail, setUserDetail } = useContext(UserDetailContext);
+
+  const [isImageViewVisible, setIsImageViewVisible] = useState(false);
+  const [currentImage, setCurrentImage] = useState(null);
+
+  const openImage = (uri) => {
+    setCurrentImage([{ uri }]);
+    setIsImageViewVisible(true);
+  };
+
+  const closeImage = () => {
+    setIsImageViewVisible(false);
+  };
 
   useEffect(() => {
-    (async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const fetchLocation = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission needed', 'This app needs camera roll permission to work properly');
+        Alert.alert(
+          'Permission Denied',
+          'Location permission is required to report issues. Please grant permission in settings.'
+        );
+        return;
       }
-    })();
+
+      try {
+        let loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+        setLocation(loc.coords);
+      } catch (error) {
+        console.error('Error fetching location:', error);
+        Alert.alert('Location Error', 'Could not get your current location. Please ensure GPS is enabled.');
+      }
+    };
+    fetchLocation();
   }, []);
 
+  useEffect(() => {
+    const requestMediaPermission = async () => {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Needed',
+          'This app needs camera roll permission to select images.'
+        );
+      }
+    };
+    requestMediaPermission();
+  }, []);
+
+  useEffect(() => {
+    if (reportStatusMessage) {
+      const timer = setTimeout(() => {
+        setReportStatusMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer); 
+    }
+  }, [reportStatusMessage]);
 
 
   const getSeverityColor = (severity) => {
@@ -52,123 +93,154 @@ const Upload = () => {
     }
   };
 
-//choosing from gallery
+  // Choosing from gallery
+  const pickImage = async () => {
+    if (selectedImages.length >= 10) {
+      ToastAndroid.show('You can only select up to 10 images.', ToastAndroid.SHORT);
+      return;
+    }
 
-const pickImage = async () => {
-  let result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaType,
-    allowsEditing: true,
-    aspect: [4, 3],
-    quality: 1,
-    base64:true,
-    exif:true,
-  });
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images, // Corrected MediaType
+      allowsMultipleSelection: true,
+      selectionLimit: 10 - selectedImages.length,
+      quality: 1,
+    });
 
-  if (!result.canceled) {
-    setSelectedImage(result.assets[0].uri);
-    console.log(result.assets[0].exif);
-    setPrediction(null);
-  }
-};
-
-//taking photo
-const takePhoto = async () => {
-  let result = await ImagePicker.launchCameraAsync({
-    allowsEditing: true,
-    aspect: [4, 3],
-    quality: 1,
-  });
-
-  if (!result.canceled) {
-    setSelectedImage(result.assets[0].uri);
-    console.log(result.assets[0].exif);
-    setPrediction(null);
-  }
-};
+    if (!result.canceled) {
+      const newImages = result.assets.map((asset) => asset.uri);
+      const totalImages = [...selectedImages, ...newImages];
 
 
-// getting prediction
-
-const uploadImage = async () => {
-  if (!selectedImage) {
-    ToastAndroid.show('No image selected Please select an image first',ToastAndroid.SHORT);
-    return;
-  }
-  
-  setLoading(true);
-  
-  // Create form data for image upload
-  const formData = new FormData();
-  formData.append('image', {
-    uri: selectedImage,
-    type: 'image/jpeg',
-    name: 'road-damage.jpg',
-  });
-  
-  try {
-    // Send image to backend for analysis
-    // NOTE: In a real app, replace with your actual API endpoint
-    // const response = await axios.post(`${API_URL}/analyze-damage`, formData, {
-    //   headers: {
-    //     'Content-Type': 'multipart/form-data',
-    //   },
-    // });
-    
-    // For demo purposes, simulate API response with mock data
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Mock response
-    const mockResponse = {
-      data: {
-        damageType: 'Pothole',
-        severity: 'High',
-        confidence: 90,
-        location: 'Madhapur',
-        date:'12-03-2025',
-        summary: 'Severe pothole detected. Immediate repair action is required to prevent accidents and further road degradation.'
-
+      if (totalImages.length > 10) {
+        ToastAndroid.show(`You can only select up to 10 images. You selected ${totalImages.length - selectedImages.length} more than allowed.`, ToastAndroid.LONG);
+        setSelectedImages(totalImages.slice(0, 10)); 
+      } else {
+        setSelectedImages(totalImages);
       }
-    };
-    
-    setPrediction(mockResponse.data);
-    setLoading(false);
-    
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    Alert.alert(
-      'Upload failed', 
-      'There was an error uploading your image. Please try again later.'
-    );
-    setLoading(false);
-  }
-};
+      setPrediction(null); 
+    }
+  };
 
-const sendReport = async()=>{
-  setReportLoading(true);
-  setIsMessage(false);
-  setMessage("");
-  const formdata = new FormData();
-  formdata.append('report',{
-    prediction: prediction,
-    usermessage : message,
-  })
-  await (new Promise((resolve)=>setTimeout(resolve,3000)));
 
-  setReportLoading(false);
-  console.log("report sent succussfully!!....");
-  setIsSent(true);
-}
+  const takePhoto = async () => {
+    if (selectedImages.length >= 10) {
+      ToastAndroid.show('You can only select up to 10 images.', ToastAndroid.SHORT);
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setSelectedImages([...selectedImages, result.assets[0].uri]);
+      setPrediction(null);
+    }
+  };
+
+  // Uploading images and creating report
+  const uploadImage = async () => {
+    if (selectedImages.length === 0) {
+      ToastAndroid.show('Please select at least one image.', ToastAndroid.SHORT);
+      return;
+    }
+    if (selectedImages.length < 3) {
+      ToastAndroid.show('Select at least 3 images for a complete report.', ToastAndroid.SHORT);
+      return;
+    }
+
+    if (!location) {
+      ToastAndroid.show('Acquiring location, please wait...', ToastAndroid.SHORT);
+      return;
+    }
+
+    setLoading(true); 
+
+    const formData = new FormData();
+
+    selectedImages.forEach((uri, index) => {
+      const fileExtension = uri.split('.').pop();
+      formData.append('images', {
+        uri,
+        name: `image${index + 1}.${fileExtension || 'jpg'}`, 
+        type: `image/${fileExtension || 'jpeg'}`,
+      });
+    });
+
+    formData.append('latitude', location.latitude.toString());
+    formData.append('longitude', location.longitude.toString());
+    formData.append('usermessage', message);
+
+    try {
+      const storedToken = await AsyncStorage.getItem('userToken');
+      if (!storedToken) {
+        ToastAndroid.show('Authentication required. Please log in.', ToastAndroid.LONG);
+        return;
+      }
+
+      console.log('Attempting to send report with formData:', formData);
+      const response = await fetch(`${BACKEND_URL}/api/reports`, {
+        method: 'POST',
+        headers: {
+          'authorization': `Bearer ${storedToken}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json(); 
+        console.error('Backend error response:', errorData);
+        throw new Error(errorData.message || `Server responded with status ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Upload successful, backend response:', result);
+      setPrediction(result); 
+      setReportStatusMessage({ type: result.status, text: 'Thanks for reporting, you will be updated soon!' });
+      ToastAndroid.show('Report submitted successfully!', ToastAndroid.LONG);
+      setSelectedImages([]);
+      setMessage(''); 
+
+    } catch (error) {
+      console.error('Report upload failed:', error.message);
+      setReportStatusMessage({ type: 'fail', text: `Report submission failed: ${error.message}` });
+      ToastAndroid.show(`Report submission failed: ${error.message}`, ToastAndroid.LONG);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // const sendReport = async () => {
+  //   setReportLoading(true);
+  //   setIsMessage(false);
+  //   setMessage('');
+  //   const formData = new FormData();
+  //   // You need to decide what 'prediction' and 'usermessage' refer to
+  //   // and if this is a separate API call.
+  //   formData.append('report', JSON.stringify({ // Stringify JSON objects for FormData
+  //     prediction: prediction,
+  //     usermessage: message,
+  //   }));
+  //
+  //   // Simulate network delay
+  //   await new Promise((resolve) => setTimeout(resolve, 3000));
+  //
+  //   setReportLoading(false);
+  //   // setIsSent(true); // This should be based on actual API response
+  //   setReportStatusMessage({ type: 'success', text: 'Report details sent!' });
+  // };
 
 
   return (
     <DefaultLayout>
       <ScrollView className="flex-1 bg-gray-50">
-        <View className="mx-2 mt-6 p-4 items-center rounded-xl bg-gray-50 gap-3" style={styles.shadow}>
-          <View className="items-center"> 
+        <View className="mx-2 mt-6 mb-7 p-4 items-center rounded-xl bg-gray-50 gap-3" style={styles.shadow}>
+          <View className="items-center">
             <TouchableOpacity
               className="px-3 py-2 bg-amber-800 rounded-2xl items-center"
-              onPress={pickImage}
-            >
+              onPress={pickImage}>
               <Text className="text-white text-xl">Select from Gallery</Text>
             </TouchableOpacity>
           </View>
@@ -176,145 +248,91 @@ const sendReport = async()=>{
           <View className="items-center">
             <TouchableOpacity
               className="px-3 py-2 bg-amber-800 rounded-2xl items-center"
-              onPress={takePhoto}
-            >
-              <Text className="text-white text-xl"><Camera size={20} color="#ffffff"/>    Take Photo</Text>
+              onPress={takePhoto}>
+              <Text className="text-white text-xl">
+                <Camera size={20} color="#ffffff" />    Take Photo
+              </Text>
             </TouchableOpacity>
           </View>
-          
-          <View>
-            {selectedImage ? (
-              <TouchableOpacity onPress={()=>openImage(selectedImage)}>
 
-                <Image 
-                  source={{ uri: selectedImage }} 
-                  className="rounded-xl w-[250px] h-[200px]"
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
+          <View className="flex-row flex-wrap justify-center gap-2">
+            {selectedImages.length > 0 ? (
+              selectedImages.map((uri, index) => (
+                <TouchableOpacity key={index} onPress={() => openImage(uri)}>
+                  <Image
+                    source={{ uri }}
+                    className="rounded-xl w-[100px] h-[100px]"
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+              ))
             ) : (
-              <View className="border-[1px] border-black p-4 rounded-xl" >
-                <Image 
-                  source={require('../../assets/images/upload.png')} 
-                  className="w-[150px] h-[150px] rounded-xl"
-                />
+              <View className="border-[1px] border-black p-4 rounded-xl">
+                <Image source={uploadimg} className="w-[150px] h-[150px] rounded-xl" />
               </View>
             )}
           </View>
 
+          {selectedImages.length>0 && 
+            <TextInput
+              className="w-full p-3 border border-gray-300 rounded-md mt-4 text-base"
+              placeholder="Add an optional message or details about the issue..."
+              multiline
+              numberOfLines={4}
+              value={message}
+              onChangeText={setMessage}
+            />
+          }
+
           <View className="items-center">
             <TouchableOpacity
-              disabled={!selectedImage || loading}
+              disabled={loading || selectedImages.length === 0 || !location}
               style={{
-                opacity: !selectedImage || loading ? 0.7 : 1,
+                opacity: loading || selectedImages.length === 0 || !location ? 0.7 : 1,
               }}
               className="px-5 py-3 bg-amber-800 rounded-2xl items-center"
-              onPress={uploadImage}
-            >{loading? <ActivityIndicator size={20} color={'white'}/>:
-              <Text className="text-white text-xl">Upload</Text>
-            }
+              onPress={uploadImage}>
+              {loading ? (
+                <ActivityIndicator size={20} color={'white'} />
+              ) : (
+                <Text className="text-white text-xl">Submit Report</Text>
+              )}
             </TouchableOpacity>
           </View>
+        </View>
+
+        <ImageViewing
+          images={currentImage || []}
+          imageIndex={0}
+          visible={isImageViewVisible}
+          onRequestClose={closeImage}
+        />
+
+        {reportStatusMessage && (
+          <View className="mx-2 my-2 p-3 items-center rounded-xl"
+            style={{ backgroundColor: reportStatusMessage.type === 'success' ? '#d4edda' : '#f8d7da' }}>
+            <Text
+              className={reportStatusMessage.type === 'success' ? 'text-green-700 font-semibold text-lg' : 'text-red-700 font-semibold text-lg'}>
+              {reportStatusMessage.text}
+            </Text>
           </View>
-              <ImageViewing
-                images={currentImage || []}
-                imageIndex={0}
-                visible={isImageViewVisible}
-                onRequestClose={closeImage}
-              />
-            {prediction &&
-                <View className="mb-14 mx-2 mt-6 p-4 rounded-xl bg-gray-50 gap-3" style={styles.shadow}>
-                  <View> 
-                    <Text className="text-2xl font-bold self-center">Analysis Result</Text>
-                  </View>
-                  <View className="gap-3">
-                    <View className="flex-row justify-around">
-                      <Text className="text-xl font-semibold">{prediction.damageType}</Text>
-                      <Text className={`px-2 py-1 rounded-full text-white ${getSeverityColor(prediction.severity)}`}>{prediction.severity}</Text>
-                    </View>
-                    <View className="self-center flex-row gap-4">
-                      <MapPin size={18} color="#6b7280"/>
-                      <Text className="text-xl">{prediction.location}</Text>
-                    </View>
-                    <View className="self-center flex-row gap-4">
-                      <Calendar size={18} color="#6b7280"/>
-                      <Text className="text-xl">{prediction.date}</Text>
-                    </View>
-                    <View className="w-[200px] mx-6 bg-red-400 rounded-xl overflow-hidden self-center">
-                      <View
-                      style={{
-                        width: `${3 * prediction.confidence}px`,
-                        backgroundColor:
-                          prediction.confidence >= 80
-                            ? 'green'
-                            : prediction.confidence >= 70
-                            ? 'yellow'
-                            : 'red',
-                      }}
-                      >
-                      <Text className="text-white text-center text-[14px] z-10 font-semibold">Confidence: {prediction.confidence}%</Text>
-                      </View>
-                    </View>
-                    <View>
-                      <Text className="text-xl font-semibold">Summary</Text>
-                      <Text className="text-[16px]">{prediction.summary}</Text>
-                    </View>
-                    <View>
-                      <Pressable onPress={()=>{setIsMessage((cur)=>!cur);
-                        setIsSent(false);
-                      }}>
-                        <Text className="text-[15px] text-amber-800/[90%] ">Want to Convey some thing to Authorities ?</Text>
-                      </Pressable>
-                      {isMessage&&
-                        <View className="my-1 self-center relative p-4">
-                          <TextInput
-                          className='w-[250px] h-auto border-[1px] border-black rounded-xl'
-                          multiline
-                          placeholder='enter your message'
-                          maxLength={200}
-                          value={message}
-                          onChangeText={(value)=>setMessage(value)}
-                          />
-                          <Text className="absolute text-gray-500 text-[13px] bottom-0 right-4 ">{200-message.length} characters left</Text>
-                        </View>
-                      }
-                    </View>
-                    <View className="items-center">
-                      <TouchableOpacity
-                       style={{
-                        opacity: reportLoading? 0.7 : 1,
-                      }}
-                        className="px-5 py-3 bg-amber-800 rounded-2xl items-center"
-                        onPress={sendReport}
-                        disabled={reportLoading}
-                      >{reportLoading? <ActivityIndicator size={24} color={'white'}/>:
-                        <Text className="text-white text-xl">Send This Report</Text>
-                        }
-                      </TouchableOpacity>
-                    </View>
-                    {isSent&&
-                      <Text className="italic text-lg text-green-600 "><Ionicons name="checkmark-circle-sharp" size={18} color="green" /> Report Sent You will be updated soon!</Text>
-                    }
-                  </View>
-                </View>
-          }       
+        )}
       </ScrollView>
     </DefaultLayout>
   );
-}
+};
 
 const styles = StyleSheet.create({
   shadow: {
-      shadowColor: "#000000",
-      shadowOffset: {
-          width: 1,
-          height: 1,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius:1,
-
-      elevation: 15,
-  }
-})
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 1,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 15,
+  },
+});
 
 export default Upload;
