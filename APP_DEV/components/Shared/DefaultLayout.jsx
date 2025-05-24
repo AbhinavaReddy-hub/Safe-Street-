@@ -13,7 +13,6 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
-
 const DefaultLayout = ({ children }) => {
   const [isNotifOpen, setNotifOpen] = useState(false);
   const [isNewNotif , setNewNotif] = useState(false);
