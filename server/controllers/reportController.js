@@ -1672,17 +1672,18 @@ const TOMTOM_API_KEY = process.env.TOMTOM_API_KEY;
 
 const createReport = async (req, res) => {
   console.log('=== Starting Report Creation ===');
+  let uploadedFilePaths = [];
   try {
     if (!req.files || req.files.length === 0) {
       console.log('No images uploaded');
       return res.status(400).json({ status: 'fail', message: 'At least one image is required' });
     }
     console.log(`Received ${req.files.length} image(s)`);
+    uploadedFilePaths = req.files.map(file => file.path);
 
     const caseId = uuidv4();
     console.log(`Generated caseId: ${caseId}`);
-
-    const { latitude, longitude } = req.body;
+    const { latitude, longitude, usermessage:message } = req.body;
     // const [latitude, longitude] = [17.064193, 79.265675];
 
     if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
@@ -1703,7 +1704,7 @@ const createReport = async (req, res) => {
 
     if (nearbyReports.length > 0) {
       console.log(`Found ${nearbyReports.length} non-pending report(s)`);
-      req.files.forEach(file => fs.unlink(file.path, err => err && console.error(`Failed to delete ${file.path}`)));
+      uploadedFilePaths.forEach(filePath => fs.unlink(filePath, err => err && console.error(`Failed to delete ${filePath}: ${err.message}`)));
       return res.status(400).json({ status: 'fail', message: 'Already reported, work in progress' });
     }
     console.log('No non-pending reports found');
@@ -1721,9 +1722,8 @@ const createReport = async (req, res) => {
       })
     );
     console.log(`Uploaded ${imageUrls.length} image(s)`);
-
-    req.files.forEach(file => fs.unlink(file.path, err => err && console.error(`Failed to delete ${file.path}`)));
-
+    uploadedFilePaths.forEach(filePath => fs.unlink(filePath, err => err && console.error(`Failed to delete ${filePath}: ${err.message}`)));
+    console.log('Temporary files deleted');
     console.log('Resolving location name with HERE Maps');
     let locationName = 'Unknown Location';
     try {
@@ -1761,7 +1761,9 @@ const createReport = async (req, res) => {
       },
       trafficCongestionScore,
       status: 'pending',
-      h3Cell
+      message,
+      h3Cell,
+   
     };
     console.log('Saving report');
     const report = await Report.create(reportData);
@@ -2040,7 +2042,7 @@ const completeReport = async (req, res) => {
         message: 'Request body is missing or invalid' 
       });
     }
-
+    
     const { caseId } = req.body;
     const workerId = req.user.id;
 

@@ -10,21 +10,26 @@ const signToken = id => {
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    
     const user = await User.create({
       name,
       email,
       password,
-      role
+      role,
+      isVerified: false
     });
 
     const token = signToken(user._id);
-    
+
     res.status(201).json({
       status: 'success',
       token,
       data: {
-        user
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
       }
     });
   } catch (err) {

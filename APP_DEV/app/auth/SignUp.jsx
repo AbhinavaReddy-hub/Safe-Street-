@@ -1,11 +1,14 @@
 import { View, KeyboardAvoidingView, Keyboard, TouchableOpacity, TouchableWithoutFeedback, StyleSheet, Text, Image, TextInput, Pressable, ActivityIndicator, ScrollView, ToastAndroid, Platform } from 'react-native';
 import React, { useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import Colors from '../../constants/Colors';
 import { useRouter } from 'expo-router';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { auth, db } from '../../config/fireBaseConfig';
 import { setDoc, doc } from 'firebase/firestore';
 import { UserDetailContext } from '../../context/UserDetailContext';
+import signup from '../../assets/images/signup.jpg';
 
 export default function SignUp() {
   const router = useRouter();
@@ -19,25 +22,28 @@ export default function SignUp() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const CreateNewAccount = () => {
-    setLoading(true);
-    setError("");
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(async (res) => {
-        const user = res.user;
-        console.log("user Created successfully!!");
-        await sendEmailVerification(user);
-        setEmailSent(true);
-        console.log("Verification email sent");
-        await SaveUser(user);
-        setLoading(false);
-      })
-      .catch(e => {
-        console.log(e.message);
-        setError(e.message);
-        setLoading(false);
-      });
-  };
+  const CreateNewAccount = async () => {
+  setLoading(true);
+  setError("");
+
+  try {
+    const res = await createUserWithEmailAndPassword(auth, email, password);
+    const user = res.user;
+    console.log("User created successfully!");
+
+    
+    await sendEmailVerification(user);
+    setEmailSent(true);
+    console.log("Verification email sent");
+
+    await SaveUser(user);
+  } catch (e) {
+    console.log(e.message);
+    setError(e.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     if (emailSent && !emailVerified) {
@@ -46,6 +52,25 @@ export default function SignUp() {
           await auth.currentUser.reload();
           if (auth.currentUser.emailVerified) {
             setEmailVerified(true);
+            const mongores = await fetch("http://192.168.43.97:3000/api/auth/register", {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  name: fullName,
+                  email: email,
+                  password: password,
+                  role: "user",
+                }),
+              });
+
+              const mongojson = await mongores.json();
+              const user = mongojson.data.user;
+              await AsyncStorage.setItem('userToken', mongojson.token);
+      
+              setUserDetail(user);
+              console.log(mongojson);
             clearInterval(interval);
             ToastAndroid.show('Email verified! Redirecting...', ToastAndroid.SHORT);
             setLoading(false);
@@ -62,8 +87,8 @@ export default function SignUp() {
     const data = {
       name: fullName,
       email: email,
-      member: false,
       emailVerified: emailVerified,
+      role:'user',
       uid: user?.uid
     };
     await setDoc(doc(db, 'users', email), data);
@@ -90,7 +115,7 @@ export default function SignUp() {
           }}>
             {!emailSent ?
               <>
-                <Image source={require('../../assets/images/signup.jpg')}
+                <Image source={signup}
                   style={{
                     borderRadius:10,
                     width: 250,
@@ -185,6 +210,8 @@ export default function SignUp() {
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
+
+  
 }
 
 const styles = StyleSheet.create({

@@ -210,7 +210,7 @@ cnn_input_size = (224, 224)
 processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
 config = DetrConfig.from_pretrained("facebook/detr-resnet-50", num_labels=9)
 model = DetrForObjectDetection(config)
-model_path = r"C:\Users\avana\Downloads\vit_detr_3__model.safetensors"
+model_path = "model.safetensors"
 state_dict = load_file(model_path)
 model.load_state_dict(state_dict)
 model.eval()

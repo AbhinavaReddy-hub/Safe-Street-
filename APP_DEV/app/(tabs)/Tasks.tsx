@@ -77,7 +77,7 @@ export default function Tasks() {
     navigation.navigate("Safe-Street-\\APP_DEV\\app\\(tabs)\\TaskDetails.jsx", { task });
   };
   const TaskCard = ({ task }: { task: typeof mockTasks[0] }) => (
-    <View className="bg-white rounded-xl shadow-sm mb-4 overflow-hidden">
+    <View className="bg-white rounded-xl shadow-md mb-4 overflow-hidden">
       <View className="flex-row">
         <Image source={{ uri: task.image }} className="w-32 h-full" />
         <View className="flex-1 p-4">
