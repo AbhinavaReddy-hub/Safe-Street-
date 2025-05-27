@@ -1,8 +1,11 @@
 import { View, Text, ScrollView, Image, TouchableOpacity ,StyleSheet} from 'react-native';
+import {Stack} from 'expo-router';
 import DefaultLayout from '../../components/Shared/DefaultLayout';
+import { UserDetailContext } from '@/context/UserDetailContext';
 import Header from '@/components/Home/Header';
 import { useRouter } from 'expo-router';
 import { Camera, ClipboardList, CircleUser as UserCircle, MapPin, Calendar } from 'lucide-react-native';
+import { useContext } from 'react';
 
 const mockUser = {
   name: 'John Doe',
@@ -70,13 +73,15 @@ const getStatusColor = (status: string) => {
 
 export default function Home() {
   const router = useRouter();
+  const {userDetail, setUserDetail}  =useContext(UserDetailContext)
 
   return (
     <DefaultLayout>
-      
+    
     <ScrollView className="flex-1 bg-gray-50">
       {/* Stats Section */}
       <Header/>
+      {userDetail?.role==='worker' && 
       <View className="px-5 py-6 bg-white mt-[1px] mx-2 rounded-xl" style={styles.shadow}>
         <View className="flex-row justify-between">
           <View className="flex-1 items-center bg-amber-800/[40%] p-4 rounded-2xl mr-2">
@@ -92,12 +97,14 @@ export default function Home() {
             <Text className="text-[16px] text-green-700 mt-1">Resolved</Text>
           </View>
         </View>
+      
           <View className='flex-1 items-center justify-center mt-5'>
             <TouchableOpacity onPress={()=>(router.push("/(tabs)/Tasks"))}  className='px-5 py-3 bg-amber-800 rounded-2xl'>
               <Text className='text-white text-xl'>Go to My Tasks</Text>
             </TouchableOpacity>
           </View>
       </View>
+      }
 
   
 

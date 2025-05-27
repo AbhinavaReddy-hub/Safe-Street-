@@ -219,5 +219,3 @@ const getReports = async (req, res) => {
     });
   }
 };
-
-module.exports = { createReport, getReports };

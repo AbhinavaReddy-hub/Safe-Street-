@@ -21,6 +21,8 @@ import { auth, db } from '../../config/fireBaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { getDoc, doc } from 'firebase/firestore';
 import { UserDetailContext } from '../../context/UserDetailContext';
+import signin from '../../assets/images/login.jpg';
+
 
 export default function SignIn() {
   const router = useRouter();
@@ -44,7 +46,21 @@ export default function SignIn() {
     setLoading(true);
     try {
       const resp = await signInWithEmailAndPassword(auth, email, pass);
-      const user = resp.user;
+      // const mongores = await fetch("http://192.168.43.97:3000/api/auth/login",{
+      //    method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify({
+         
+      //       email: email,
+      //       password: pass,
+          
+      //     }),
+      // });
+      // const mongojson = await mongores.json()
+      // console.log(mongojson);
+      // const user = resp.user;
 
       // Reload user to get the latest email verification status
       await user.reload();
@@ -97,7 +113,7 @@ export default function SignIn() {
           keyboardShouldPersistTaps="handled"
         >
           <Image
-            source={require('../../assets/images/login.jpg')}
+            source={signin}
             style={styles.logo}
           />
 

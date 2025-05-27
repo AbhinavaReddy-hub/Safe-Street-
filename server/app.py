@@ -31,7 +31,7 @@ config = DetrConfig.from_pretrained("facebook/detr-resnet-50", num_labels=9)
 model = DetrForObjectDetection(config)
 
 # Load safetensors weights
-model_path = "/Users/raghupersonal/Desktop/models/model.safetensors"
+model_path = r"C:\Users\avana\Downloads\vit_detr_3__model.safetensors"
 logger.info("Loading model weights from safetensors file...")
 state_dict = load_file(model_path)
 model.load_state_dict(state_dict)
