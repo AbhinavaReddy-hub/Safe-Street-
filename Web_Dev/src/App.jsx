@@ -5,21 +5,68 @@ import Reports from './components/Reports/Reports';
 import TeamAnalytics from './components/TeamAnalytics/TeamAnalytics';
 import { CollapsedProvider } from './context/collapse';
 import Insights from './components/Insights/Insights';
-
+import SignupPage from './auth/SignUp';
+import ProtectedRoute from './ProtectedRoute';
+import LoginPage from './auth/Login';
+import { useEffect } from 'react';
 
 function App() {
+ useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+     let cur =  window.location.href.split('/').pop();
+     if(cur==='login' || cur==='signup'){
+      window.location.href = '/';
+     }
+    }
+  }, []);
   return (
     <CollapsedProvider>
-    
       <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/analytics" element={<TeamAnalytics />} />
-            <Route path="/insights" element={<Insights/>}/>
-          </Routes>
-        </Layout>
+        <Routes>
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path='/login' element ={<LoginPage/>}/>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Home />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Reports />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TeamAnalytics />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/insights"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Insights />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
       </BrowserRouter>
     </CollapsedProvider>
   );
