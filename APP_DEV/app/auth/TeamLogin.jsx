@@ -18,6 +18,7 @@ import React, { useContext, useState } from 'react';
 import Colors from '../../constants/Colors';
 import { useRouter } from 'expo-router';
 import { UserDetailContext } from '../../context/UserDetailContext';
+import { useIp } from '../../context/IpContext';
 import signin from '../../assets/images/login.jpg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -31,6 +32,7 @@ export default function TeamLogin() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const {userDetail, setUserDetail } = useContext(UserDetailContext);
+  const {ip} = useIp();
 
  class TeamNotFoundError extends Error {
   constructor(message = "Team does not exist. Please get the credentials from the authority.") {
@@ -49,7 +51,7 @@ export default function TeamLogin() {
 
     setLoading(true);
     try {
-      const mongores = await fetch("http://192.168.207.157:3000/api/auth/login",{
+      const mongores = await fetch(`http://${ip}:3000/api/auth/login`,{
          method: 'POST',
           headers: {
             'Content-Type': 'application/json',

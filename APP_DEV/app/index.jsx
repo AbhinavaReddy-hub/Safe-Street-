@@ -30,8 +30,8 @@ import rdamage from '../assets/images/road_damage.png';
           console.log("user already exists");
           const result = await getDoc(doc(db, "users", user?.email));
           console.log("user found redirecting to home ....");
-          setUserDetail(result.data());
-          router.replace("../(tabs)/Home"); 
+          // setUserDetail(result.data());
+          // router.replace("../(tabs)/Home"); 
         }
     }catch(e){
       console.log("error: ",e);
@@ -53,7 +53,7 @@ import rdamage from '../assets/images/road_damage.png';
         console.log("user exist.");
         console.log("redirecting to home...");
          setUserDetail(JSON.parse(storedUser));
-         router.replace('../(tabs)/Home');
+        //  router.replace('../(tabs)/Home');
       }
     }catch(e){
       console.log(e);

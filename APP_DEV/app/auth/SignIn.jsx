@@ -21,6 +21,7 @@ import { auth, db } from '../../config/fireBaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { getDoc, doc } from 'firebase/firestore';
 import { UserDetailContext } from '../../context/UserDetailContext';
+
 import signin from '../../assets/images/login.jpg';
 
 
@@ -31,6 +32,7 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { setUserDetail } = useContext(UserDetailContext);
+  
 
   const onSignin = async () => {
     if (!email || !pass) {

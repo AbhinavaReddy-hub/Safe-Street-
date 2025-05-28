@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImageViewing from 'react-native-image-viewing';
 import DefaultLayout from "../../components/Shared/DefaultLayout";
 import { UserDetailContext } from '../../context/UserDetailContext';
+import { useIp } from '../../context/IpContext';
 import { Camera, MapPin, Calendar } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import uploadimg from '../../assets/images/upload.png';
@@ -12,7 +13,6 @@ import * as Location from 'expo-location';
 import React from 'react'
 
 
-const BACKEND_URL = 'http://192.168.207.157:3000'; 
 const Upload = () => {
   const [location, setLocation] = useState(null);
   const [selectedImages, setSelectedImages] = useState([]); 
@@ -22,6 +22,7 @@ const Upload = () => {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportStatusMessage, setReportStatusMessage] = useState(null);
   const { userDetail, setUserDetail } = useContext(UserDetailContext);
+  const {ip,setIp} = useIp();
 
   const [isImageViewVisible, setIsImageViewVisible] = useState(false);
   const [currentImage, setCurrentImage] = useState(null);
@@ -69,7 +70,7 @@ const Upload = () => {
     };
     requestMediaPermission();
   }, []);
-
+  
   useEffect(() => {
     if (reportStatusMessage) {
       const timer = setTimeout(() => {
@@ -175,12 +176,12 @@ const Upload = () => {
     try {
       const storedToken = await AsyncStorage.getItem('userToken');
       if (!storedToken) {
-        ToastAndroid.show('Authentication required. Please log in.', ToastAndroid.LONG);
+        ToastAndroid.show('Authentication required. Please log in.', ToastAndroid.SHORT);
         return;
       }
 
       console.log('Attempting to send report with formData:', formData);
-      const response = await fetch(`${BACKEND_URL}/api/reports`, {
+      const response = await fetch(`http://${ip}:3000/api/reports`, {
         method: 'POST',
         headers: {
           'authorization': `Bearer ${storedToken}`,
@@ -207,9 +208,13 @@ const Upload = () => {
       console.error('Report upload failed:', error.message);
       setReportStatusMessage({ type: 'fail', text: `Report submission failed: ${error.message}` });
       ToastAndroid.show(`Report submission failed: ${error.message}`, ToastAndroid.SHORT);
+      setSelectedImages([]);
+      setMessage(''); 
       setLoading(false);
     } finally {
       setLoading(false);
+      setMessage('');
+      setSelectedImages([]);
     }
   };
 
@@ -233,7 +238,6 @@ const Upload = () => {
   //   // setIsSent(true); // This should be based on actual API response
   //   setReportStatusMessage({ type: 'success', text: 'Report details sent!' });
   // };
-
 
   return (
     <DefaultLayout>
