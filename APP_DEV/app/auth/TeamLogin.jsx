@@ -45,11 +45,11 @@ export default function TeamLogin() {
       return;
     }
 
-   
+   console.log("hello");
 
     setLoading(true);
     try {
-      const mongores = await fetch("http://192.168.43.97:3000/api/auth/login",{
+      const mongores = await fetch("http://192.168.207.157:3000/api/auth/login",{
          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -66,6 +66,7 @@ export default function TeamLogin() {
      
       if (mongojson.status === "success" && mongojson.data?.user?.role === "worker") {
         const user = mongojson.data.user;
+        console.log(user);
         await AsyncStorage.setItem('userToken', mongojson.token);
         await AsyncStorage.setItem('userData', JSON.stringify(user));
 

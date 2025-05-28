@@ -31,7 +31,7 @@ import rdamage from '../assets/images/road_damage.png';
           const result = await getDoc(doc(db, "users", user?.email));
           console.log("user found redirecting to home ....");
           setUserDetail(result.data());
-          // router.replace("../(tabs)/Home"); 
+          router.replace("../(tabs)/Home"); 
         }
     }catch(e){
       console.log("error: ",e);

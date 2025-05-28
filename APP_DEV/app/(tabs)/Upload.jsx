@@ -12,7 +12,7 @@ import * as Location from 'expo-location';
 import React from 'react'
 
 
-const BACKEND_URL = 'http://192.168.43.97:3000'; 
+const BACKEND_URL = 'http://192.168.207.157:3000'; 
 const Upload = () => {
   const [location, setLocation] = useState(null);
   const [selectedImages, setSelectedImages] = useState([]); 
@@ -198,14 +198,16 @@ const Upload = () => {
       console.log('Upload successful, backend response:', result);
       setPrediction(result); 
       setReportStatusMessage({ type: result.status, text: 'Thanks for reporting, you will be updated soon!' });
-      ToastAndroid.show('Report submitted successfully!', ToastAndroid.LONG);
+      ToastAndroid.show('Report submitted successfully!', ToastAndroid.SHORT);
       setSelectedImages([]);
       setMessage(''); 
+      setLoading(false);
 
     } catch (error) {
       console.error('Report upload failed:', error.message);
       setReportStatusMessage({ type: 'fail', text: `Report submission failed: ${error.message}` });
-      ToastAndroid.show(`Report submission failed: ${error.message}`, ToastAndroid.LONG);
+      ToastAndroid.show(`Report submission failed: ${error.message}`, ToastAndroid.SHORT);
+      setLoading(false);
     } finally {
       setLoading(false);
     }

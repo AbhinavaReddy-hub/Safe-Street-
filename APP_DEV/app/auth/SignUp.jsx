@@ -52,7 +52,7 @@ export default function SignUp() {
           await auth.currentUser.reload();
           if (auth.currentUser.emailVerified) {
             setEmailVerified(true);
-            const mongores = await fetch("http://192.168.43.97:3000/api/auth/register", {
+            const mongores = await fetch("http://192.168.207.157:3000/api/auth/register", {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

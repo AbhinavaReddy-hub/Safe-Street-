@@ -60,7 +60,7 @@ export default function SignIn() {
       // });
       // const mongojson = await mongores.json()
       // console.log(mongojson);
-      // const user = resp.user;
+      const user = resp.user;
 
       // Reload user to get the latest email verification status
       await user.reload();
