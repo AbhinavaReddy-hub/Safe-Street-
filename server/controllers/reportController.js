@@ -1,157 +1,96 @@
+const mongoose = require('mongoose');
 const Report = require('../models/Report');
+const User = require('../models/User');
+const Assignment = require('../models/Assignment');
+const BatchReport = require('../models/BatchReport');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const cloudinary = require('../config/cloudinary');
 const fs = require('fs');
+const h3 = require('h3-js');
 
-// Load environment variables
 require('dotenv').config();
 const HERE_API_KEY = process.env.HERE_API_KEY;
 const TOMTOM_API_KEY = process.env.TOMTOM_API_KEY;
-
-// Haversine function to calculate distance between two points in meters
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371000; // Earth's radius in meters
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
 
 const createReport = async (req, res) => {
   console.log('=== Starting Report Creation ===');
   try {
     if (!req.files || req.files.length === 0) {
-      console.log('Error: No images uploaded or Multer failed to parse files');
-      return res.status(400).json({ 
-        success: false,
-        error: 'At least one image is required' 
-      });
+      console.log('No images uploaded');
+      return res.status(400).json({ status: 'fail', message: 'At least one image is required' });
     }
     console.log(`Received ${req.files.length} image(s)`);
 
     const caseId = uuidv4();
     console.log(`Generated caseId: ${caseId}`);
 
-    console.log('Fetching approximate location...');
-    const ipGeoResponse = await axios.get('http://ip-api.com/json').catch(err => {
-      console.error('IP geolocation failed:', err.message);
-      throw new Error(`IP geolocation failed: ${err.message}`);
-    });
-  M
-    // const { lat: latitude, lon: longitude } = ipGeoResponse.data;
- const latitude=17.060799;
-    const longitude = 79.267119;
-    if (!latitude || !longitude) {
-      console.log('Error: Unable to fetch location');
-      return res.status(400).json({ 
-        success: false,
-        error: 'Unable to fetch location' 
-      });
-    }
-    console.log(`Location fetched: (${latitude}, ${longitude})`);
+    const { latitude, longitude } = req.body;
+    // const [latitude, longitude] = [17.064193, 79.265675];
 
-    // Check for existing reports within 100 meters before uploading to Cloudinary
-    console.log('Checking for existing reports within 100 meters...');
-    const DISTANCE_THRESHOLD = 20; // meters
+    if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
+      console.log('Invalid or missing location');
+      return res.status(400).json({ status: 'fail', message: 'Valid latitude and longitude are required' });
+    }
+    console.log(`Location: (${latitude}, ${longitude})`);
+
+    const H3_RESOLUTION = 12;
+    const h3Cell = h3.latLngToCell(parseFloat(latitude), parseFloat(longitude), H3_RESOLUTION);
+    console.log(`H3 Cell ID: ${h3Cell}`);
+
+    console.log(`Checking for non-pending reports in H3 cell ${h3Cell}`);
     const nearbyReports = await Report.find({
-      location: {
-        $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [longitude, latitude]
-          },
-          $maxDistance: DISTANCE_THRESHOLD // in meters
-        }
-      }
-    }).lean();
+      h3Cell,
+      status: { $in: ['analyzed', 'assigned'] }
+    }).limit(1);
 
     if (nearbyReports.length > 0) {
-      console.log(`Found ${nearbyReports.length} nearby report(s)`);
-      const hasAnalyzed = nearbyReports.some(report => report.status === 'analyzed');
-      if (hasAnalyzed) {
-        console.log('Found analyzed report(s), rejecting new report');
-        // Delete temporary files
-        req.files.forEach((file) => {
-          fs.unlink(file.path, (err) => {
-            if (err) console.error(`Failed to delete temp file ${file.path}:`, err);
-            else console.log(`Deleted temp file: ${file.path}`);
-          });
-        });
-        return res.status(400).json({
-          success: false,
-          error: 'Already reported, work in progress'
-        });
-      }
-      console.log('Only pending report(s) found, proceeding with new report');
-    } else {
-      console.log('No nearby reports found, proceeding with new report');
+      console.log(`Found ${nearbyReports.length} non-pending report(s)`);
+      req.files.forEach(file => fs.unlink(file.path, err => err && console.error(`Failed to delete ${file.path}`)));
+      return res.status(400).json({ status: 'fail', message: 'Already reported, work in progress' });
     }
+    console.log('No non-pending reports found');
 
-    console.log('Uploading images to Cloudinary...');
-    const uploadPromises = req.files.map((file, index) => {
-      console.log(`Uploading file ${index + 1}: ${file.originalname}`);
-      return cloudinary.uploader.upload(file.path, {
-        folder: 'safe-street-reports',
-        transformation: [{ width: 800, quality: 'auto', fetch_format: 'auto' }],
-      }).catch(err => {
-        console.error(`Cloudinary upload failed for ${file.originalname}:`, err.message);
-        throw new Error(`Cloudinary upload failed: ${err.message}`);
-      });
-    });
-    const results = await Promise.all(uploadPromises);
-    const imageUrls = results.map((result, index) => {
-      console.log(`Uploaded file ${index + 1}: ${result.secure_url}`);
-      return result.secure_url;
-    });
-    console.log(`Uploaded ${imageUrls.length} image(s) to Cloudinary`);
+    console.log('Uploading images to Cloudinary');
+    const imageUrls = await Promise.all(
+      req.files.map(async (file, index) => {
+        console.log(`Uploading file ${index + 1}: ${file.originalname}`);
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: 'safe-street-reports',
+          transformation: [{ width: 800, quality: 'auto', fetch_format: 'auto' }]
+        });
+        console.log(`Uploaded: ${result.secure_url}`);
+        return result.secure_url;
+      })
+    );
+    console.log(`Uploaded ${imageUrls.length} image(s)`);
 
-    // Delete temporary files after successful upload
-    req.files.forEach((file) => {
-      fs.unlink(file.path, (err) => {
-        if (err) console.error(`Failed to delete temp file ${file.path}:`, err);
-        else console.log(`Deleted temp file: ${file.path}`);
-      });
-    });
+    req.files.forEach(file => fs.unlink(file.path, err => err && console.error(`Failed to delete ${file.path}`)));
 
-    console.log('Resolving location name with HERE Maps...');
+    console.log('Resolving location name with HERE Maps');
     let locationName = 'Unknown Location';
     try {
-      const hereReverseGeoUrl = `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${latitude},${longitude}&apiKey=${HERE_API_KEY}`;
-      const hereResponse = await axios.get(hereReverseGeoUrl);
-      if (hereResponse.status !== 200) {
-        console.log('Error: Failed to resolve location name');
-        throw new Error('Failed to fetch location name from HERE Maps');
-      }
-      locationName = hereResponse.data.items[0]?.title || 'Unknown Location';
+      const { data } = await axios.get(
+        `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${latitude},${longitude}&apiKey=${HERE_API_KEY}`
+      );
+      locationName = data.items[0]?.title || 'Unknown Location';
       console.log(`Location name: ${locationName}`);
     } catch (err) {
-      console.error('HERE Maps reverse geocoding failed:', err.message);
-      console.log('Proceeding with default location name:', locationName);
+      console.error('HERE Maps failed:', err.message);
     }
 
-    console.log('Fetching traffic congestion with TomTom...');
+    console.log('Fetching traffic congestion with TomTom');
     let trafficCongestionScore = 0;
     try {
-      const tomTomUrl = `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?key=${TOMTOM_API_KEY}&point=${latitude},${longitude}`;
-      const tomTomResponse = await axios.get(tomTomUrl);
-      if (tomTomResponse.status !== 200) {
-        console.log('Error: Failed to fetch traffic data');
-        throw new Error('Failed to fetch traffic data from TomTom');
-      }
-      const flowData = tomTomResponse.data.flowSegmentData;
-      const currentSpeed = flowData.currentSpeed || 0;
-      const freeFlowSpeed = flowData.freeFlowSpeed || 1;
-      let congestion = Math.min(10 * (1 - currentSpeed / freeFlowSpeed), 10);
-      congestion = Math.max(congestion, 0);
-      trafficCongestionScore = Math.round(congestion * 10) / 10;
+      const { data } = await axios.get(
+        `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?key=${TOMTOM_API_KEY}&point=${latitude},${longitude}`
+      );
+      const { currentSpeed = 0, freeFlowSpeed = 1 } = data.flowSegmentData;
+      const congestion = Math.min(10 * (1 - currentSpeed / freeFlowSpeed), 10);
+      trafficCongestionScore = Math.max(Math.round(congestion * 10) / 10, 0);
       console.log(`Traffic congestion score: ${trafficCongestionScore}`);
     } catch (err) {
-      console.error('TomTom traffic API failed:', err.message);
-      console.log('Proceeding with default traffic congestion score:', trafficCongestionScore);
+      console.error('TomTom failed:', err.message);
     }
 
     const reportData = {
@@ -160,40 +99,25 @@ const createReport = async (req, res) => {
       userId: req.user._id,
       location: {
         type: 'Point',
-        coordinates: [longitude, latitude],
-        locationName,
+        coordinates: [parseFloat(longitude), parseFloat(latitude)],
+        locationName
       },
       trafficCongestionScore,
       status: 'pending',
+      h3Cell
     };
-    console.log('Saving report to Reports collection...');
+    console.log('Saving report');
+    const report = await Report.create(reportData);
+    console.log(`Report saved (ID: ${report._id})`);
 
-    const report = await Report.create(reportData).catch(err => {
-      console.error('MongoDB save failed:', err.message);
-      throw new Error(`MongoDB save failed: ${err.message}`);
-    });
-    console.log(`Report saved successfully (ID: ${report._id})`);
-
-    return res.status(201).json({
-      success: true,
-      data: report,
-    });
+    return res.status(201).json({ status: 'success', data: report });
   } catch (error) {
-    // Ensure temporary files are deleted on error
-    if (req.files) {
-      req.files.forEach((file) => {
-        fs.unlink(file.path, (err) => {
-          if (err) console.error(`Failed to delete temp file ${file.path}:`, err);
-          else console.log(`Deleted temp file: ${file.path}`);
-        });
-      });
-    }
+    req.files?.forEach(file => fs.unlink(file.path, err => err && console.error(`Failed to delete ${file.path}`)));
     console.error('Report creation failed:', error.message);
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to create report',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    });
+    if (error.code === 11000) {
+      return res.status(400).json({ status: 'fail', message: 'Report with this caseId already exists' });
+    }
+    return res.status(500).json({ status: 'error', message: 'Failed to create report' });
   }
 };
 
@@ -202,20 +126,101 @@ const getReports = async (req, res) => {
     console.log('=== Fetching Reports ===');
     const reports = await Report.find({ userId: req.user._id })
       .populate('userId', 'name email')
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
     console.log(`Found ${reports.length} reports`);
-    return res.status(200).json({
-      success: true,
-      count: reports.length,
-      data: reports,
-    });
+    return res.status(200).json({ status: 'success', count: reports.length, data: reports });
   } catch (error) {
     console.error('Failed to fetch reports:', error.message);
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to fetch reports',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    });
+    return res.status(500).json({ status: 'error', message: 'Failed to fetch reports' });
   }
+};
+
+const getAdminReports = async (req, res) => {
+  try {
+    console.log('=== Fetching Admin Reports ===');
+    const { h3Cell, priorityThreshold = 50, sortBy = 'damageResult.priorityScore', sortOrder = 'desc', page = 1, limit = 10 } = req.query;
+
+    const batchQuery = { 'damageResult.priorityScore': { $gte: parseFloat(priorityThreshold) } };
+    if (h3Cell) batchQuery.h3Cell = h3Cell;
+
+    let batches = await BatchReport.aggregate([
+      { $match: batchQuery },
+      {
+        $lookup: {
+          from: 'reports',
+          let: { caseIds: '$caseIds' },
+          pipeline: [
+            { $match: { $expr: { $in: ['$caseId', '$$caseIds'] }, status: 'analyzed' } },
+            { $project: { caseId: 1, imageUrls: 1, location: 1, trafficCongestionScore: 1, h3Cell: 1, createdAt: 1 } }
+          ],
+          as: 'reports'
+        }
+      },
+      { $match: { reports: { $ne: [] } } },
+      { $project: { batchId: 1, h3Cell: 1, centroid: 1, damageResult: 1, reportCount: 1, reports: 1, createdAt: 1 } },
+      { $sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 } },
+      { $skip: (parseInt(page) - 1) * parseInt(limit) },
+      { $limit: parseInt(limit) }
+    ]);
+
+    if (batches.length < limit) {
+      const remainingLimit = limit - batches.length;
+      const lowerPriorityBatches = await BatchReport.aggregate([
+        {
+          $match: {
+            'damageResult.priorityScore': { $lt: parseFloat(priorityThreshold) },
+            ...(h3Cell ? { h3Cell } : {})
+          }
+        },
+        {
+          $lookup: {
+            from: 'reports',
+            let: { caseIds: '$caseIds' },
+            pipeline: [
+              { $match: { $expr: { $in: ['$caseId', '$$caseIds'] }, status: 'analyzed' } },
+              { $project: { caseId: 1, imageUrls: 1, location: 1, trafficCongestionScore: 1, h3Cell: 1, createdAt: 1 } }
+            ],
+            as: 'reports'
+          }
+        },
+        { $match: { reports: { $ne: [] } } },
+        { $project: { batchId: 1, h3Cell: 1, centroid: 1, damageResult: 1, reportCount: 1, reports: 1, createdAt: 1 } },
+        { $sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 } },
+        { $skip: (parseInt(page) - 1) * parseInt(limit) },
+        { $limit: remainingLimit }
+      ]);
+
+      batches = [...batches, ...lowerPriorityBatches].sort((a, b) => {
+        const aScore = a.damageResult.priorityScore;
+        const bScore = b.damageResult.priorityScore;
+        return sortOrder === 'desc' ? bScore - aScore : aScore - bScore;
+      });
+    }
+
+    const total = await BatchReport.countDocuments({
+      ...(h3Cell ? { h3Cell } : {}),
+      caseIds: { $in: await Report.find({ status: 'analyzed' }).distinct('caseId') }
+    });
+
+    console.log(`Found ${batches.length} batch reports (total: ${total})`);
+    return res.status(200).json({
+      status: 'success',
+      count: batches.length,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / limit),
+      data: batches
+    });
+  } catch (error) {
+    console.error('Failed to fetch admin reports:', error.message);
+    return res.status(500).json({ status: 'error', message: 'Failed to fetch reports' });
+  }
+};
+
+
+module.exports = {
+  createReport,
+  getReports,
+  getAdminReports,
+  
 };
