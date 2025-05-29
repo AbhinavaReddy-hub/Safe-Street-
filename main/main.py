@@ -179,7 +179,6 @@
 
 
 
-
 from fastapi import FastAPI
 from pymongo import MongoClient
 from transformers import DetrImageProcessor, DetrForObjectDetection, DetrConfig
@@ -334,7 +333,7 @@ def batch_analyze():
                 "damageResult": final,
                 "reportCount": len(results),
                 "h3Cell":h3_cell,
-                "status": "assigned",
+                "status": "analyzed",
             })
         else:
             for cid in case_ids:
