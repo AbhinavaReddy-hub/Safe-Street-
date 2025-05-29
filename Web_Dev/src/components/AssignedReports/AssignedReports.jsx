@@ -186,7 +186,7 @@ export default function AssignedReports() {
                                     <span className="text-xs font-medium ml-1">View Map</span>
                                 </button>
 
-                                <button
+                                {/* <button
                                     className="flex items-center justify-center px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-lg transition-colors"
                                     onClick={() => {
                                         setSelectedReport({
@@ -200,7 +200,7 @@ export default function AssignedReports() {
                                 >
                                     <MessageSquare size={14} />
                                     <span className="text-xs font-medium ml-1">Send Message</span>
-                                </button>
+                                </button> */}
                             </div>
                         </div>
                     </div>
