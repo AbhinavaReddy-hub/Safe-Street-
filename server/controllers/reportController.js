@@ -1790,7 +1790,8 @@ const getReports = async (req, res) => {
     console.error('Failed to fetch reports:', error.message);
     return res.status(500).json({ status: 'error', message: 'Failed to fetch reports' });
   }
-};const getAdminReports = async (req, res) => {
+};
+const getAdminReports = async (req, res) => {
   try {
     console.log('=== Fetching Admin Reports ===');
     const { h3Cell, priorityThreshold = 50, sortBy = 'damageResult.priorityScore', sortOrder = 'desc', page = 1, limit = 10 } = req.query;
@@ -1805,40 +1806,14 @@ const getReports = async (req, res) => {
           from: 'reports',
           let: { caseIds: '$caseIds' },
           pipeline: [
-            {
-              $match: {
-                $expr: { $in: ['$caseId', '$$caseIds'] },
-                status: 'analyzed'
-              }
-            },
-            {
-              $project: {
-                caseId: 1,
-                imageUrls: 1,
-                location: 1,
-                trafficCongestionScore: 1,
-                h3Cell: 1,
-                status: 1,
-                createdAt: 1
-              }
-            }
+            { $match: { $expr: { $in: ['$caseId', '$$caseIds'] }, status: 'analyzed' } },
+            { $project: { caseId: 1, imageUrls: 1, location: 1, trafficCongestionScore: 1, h3Cell: 1, createdAt: 1 } }
           ],
           as: 'reports'
         }
       },
       { $match: { reports: { $ne: [] } } },
-      {
-        $project: {
-          batchId: 1,
-          status :1,
-          h3Cell: 1,
-          centroid: 1,
-          damageResult: 1,
-          reportCount: 1,
-          reports: 1,
-          createdAt: 1
-        }
-      },
+      { $project: { batchId: 1, h3Cell: 1, centroid: 1, damageResult: 1, reportCount: 1, reports: 1, createdAt: 1 } },
       { $sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 } },
       { $skip: (parseInt(page) - 1) * parseInt(limit) },
       { $limit: parseInt(limit) }
@@ -1846,7 +1821,6 @@ const getReports = async (req, res) => {
 
     if (batches.length < limit) {
       const remainingLimit = limit - batches.length;
-
       const lowerPriorityBatches = await BatchReport.aggregate([
         {
           $match: {
@@ -1859,40 +1833,14 @@ const getReports = async (req, res) => {
             from: 'reports',
             let: { caseIds: '$caseIds' },
             pipeline: [
-              {
-                $match: {
-                  $expr: { $in: ['$caseId', '$$caseIds'] },
-                  status: 'analyzed'
-                }
-              },
-              {
-                $project: {
-                  caseId: 1,
-                  imageUrls: 1,
-                  location: 1,
-                  trafficCongestionScore: 1,
-                  h3Cell: 1,
-                  status: 1,
-                  createdAt: 1
-                }
-              }
+              { $match: { $expr: { $in: ['$caseId', '$$caseIds'] }, status: 'analyzed' } },
+              { $project: { caseId: 1, imageUrls: 1, location: 1, trafficCongestionScore: 1, h3Cell: 1, createdAt: 1 } }
             ],
             as: 'reports'
           }
         },
         { $match: { reports: { $ne: [] } } },
-        {
-          $project: {
-            batchId: 1,
-            status:1,
-            h3Cell: 1,
-            centroid: 1,
-            damageResult: 1,
-            reportCount: 1,
-            reports: 1,
-            createdAt: 1
-          }
-        },
+        { $project: { batchId: 1, h3Cell: 1, centroid: 1, damageResult: 1, reportCount: 1, reports: 1, createdAt: 1 } },
         { $sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 } },
         { $skip: (parseInt(page) - 1) * parseInt(limit) },
         { $limit: remainingLimit }
@@ -1924,6 +1872,8 @@ const getReports = async (req, res) => {
     return res.status(500).json({ status: 'error', message: 'Failed to fetch reports' });
   }
 };
+
+
 
 
 const getAdminReportsBySeverity = async (req, res) => {

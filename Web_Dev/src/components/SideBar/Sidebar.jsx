@@ -7,23 +7,25 @@ import { FaRegCircleUser } from "react-icons/fa6";
 import { IoLogOutSharp } from "react-icons/io5";
 import { useCollapsed } from '../../context/collapse';
 
-const nav = ['Home', 'User Reports', 'Team Analytics', 'Insights'];
+const nav = ['Home', 'Analyzed Reports','Assigned Reports', 'Completed Reports', 'Team Analytics', 'Insights'];
 
 function Sidebar() {
-  const {collapsed,setCollapsed} = useCollapsed();
+  const { collapsed, setCollapsed } = useCollapsed();
   const location = useLocation();
   const locationMap = {
-    "/": "Home",
-    "/reports": "User Reports",
-    "/analytics": "Team Analytics",
-    "/insights": "Insights",
+    "Home": "/",
+    "Analyzed Reports": "/analyzedreports",
+    "Assigned Reports": "/assignedreports",
+    "Completed Reports": "/completedreports",
+    "Team Analytics": "/analytics",
+    "Insights": "/insights",
   }
   const [activeId, setActiveId] = useState(locationMap[location.pathname]);
-  useEffect(()=>{
-    setActiveId(()=>(locationMap[location.pathname]))
-  },[location.pathname])
-  
-  
+  useEffect(() => {
+    setActiveId(() => (locationMap[location.pathname]))
+  }, [location.pathname])
+
+
 
   return (
     <motion.div
@@ -39,7 +41,7 @@ function Sidebar() {
             className='h-[100%] overflow-hidden flex flex-col'
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2,ease:'easeInOut' }}
+            transition={{ delay: 0.2, ease: 'easeInOut' }}
           >
             <motion.div
             >
@@ -68,37 +70,39 @@ function Sidebar() {
 
               <div className="flex flex-col gap-2 items-center">
                 {nav.map((val, id) => {
-                  const routeMap={
+                  const routeMap = {
                     "Home": "/",
-                    "User Reports": "/reports",
+                    "Analyzed Reports": "/analyzedreports",
+                    "Assigned Reports": "/assignedreports",
+                    "Completed Reports": "/completedreports",
                     "Team Analytics": "/analytics",
                     "Insights": "/insights",
                   };
-                  return(
-                  <Link
-                    to={routeMap[val]}
-                    key={id}
-                    onClick={()=>setActiveId(val)}
-                    className="w-full flex justify-center"
-                  >                  
-                    <motion.div
+                  return (
+                    <Link
+                      to={routeMap[val]}
                       key={id}
-                      whileHover={{ scale: 1.05 }}
-                      animate={activeId == val ? { scale: 1.05 } : {}}
-                      className={`px-4 py-2 font-medium rounded-lg ${val!=activeId?"hover:bg-gray-100":""}  cursor-pointer ${activeId == val ? "bg-amber-800 text-white" : ""}`}
                       onClick={() => setActiveId(val)}
+                      className="w-full flex justify-center"
                     >
-                      {val}
-                    </motion.div>
-                  </Link>
+                      <motion.div
+                        key={id}
+                        whileHover={{ scale: 1.05 }}
+                        animate={activeId == val ? { scale: 1.05 } : {}}
+                        className={`px-4 py-2 font-medium rounded-lg ${val != activeId ? "hover:bg-gray-100" : ""}  cursor-pointer ${activeId == val ? "bg-amber-800 text-white" : ""}`}
+                        onClick={() => setActiveId(val)}
+                      >
+                        {val}
+                      </motion.div>
+                    </Link>
                   )
                 })}
               </div>
-              <motion.div 
-              whileHover={{backgroundColor:'#f3f4f6', borderRadius:'10px'}}
-              className='mt-3 w-fit flex flex-row items-center self-center cursor-pointer gap-3 px-4 py-1 rounded-lg'>
+              <motion.div
+                whileHover={{ backgroundColor: '#f3f4f6', borderRadius: '10px' }}
+                className='mt-3 w-fit flex flex-row items-center self-center cursor-pointer gap-3 px-4 py-1 rounded-lg'>
                 <IoLogOutSharp className='text-2xl rotate-180' />
-                <button className='border-none text-[14px] font-medium' style={{all:'unset'}}>LogOut</button>
+                <button className='border-none text-[14px] font-medium' style={{ all: 'unset' }}>LogOut</button>
               </motion.div>
             </div>
           </motion.div>
