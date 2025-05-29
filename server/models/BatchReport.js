@@ -16,6 +16,7 @@ const batchReportSchema = new mongoose.Schema({
   },
   reportCount: Number,
   h3Cell: String,
+  status: String,
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -178,6 +178,7 @@
 #     return {"status": "done"}
 
 
+
 from fastapi import FastAPI
 from pymongo import MongoClient
 from transformers import DetrImageProcessor, DetrForObjectDetection, DetrConfig
@@ -210,7 +211,7 @@ cnn_input_size = (224, 224)
 processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
 config = DetrConfig.from_pretrained("facebook/detr-resnet-50", num_labels=9)
 model = DetrForObjectDetection(config)
-model_path = "model.safetensors"
+model_path = r"C:\Users\avana\Downloads\vit_detr_3__model.safetensors"
 state_dict = load_file(model_path)
 model.load_state_dict(state_dict)
 model.eval()
@@ -308,11 +309,12 @@ def batch_analyze():
                 best["priorityScore"] = round(best["severityWeight"] * case.get("trafficCongestionScore", 1.0), 2)
                 case["finalPrediction"] = best
                 results.append(case)
-
+        
+        case_ids = [r["caseId"] for r in group]
         if results:
             logger.info(f"✅ Finalizing {len(results)} analyzed reports for cluster {cluster_id}")
             final = max((r["finalPrediction"] for r in results), key=lambda x: (x["severityWeight"], x["confidenceScore"]))
-            case_ids = [r["caseId"] for r in results]
+            # case_ids = [r["caseId"] for r in results]
             for cid in case_ids:
                 reports_collection.update_one({"caseId": cid}, {"$set": {
                     "damageType": final["damageType"],
@@ -330,9 +332,18 @@ def batch_analyze():
                 "centroid": {"latitude": centroid_lat, "longitude": centroid_lon},
                 "damageResult": final,
                 "reportCount": len(results),
-                "h3Cell":h3_cell
+                "h3Cell":h3_cell,
+                "status": "analyzed",
             })
         else:
+            for cid in case_ids:
+                reports_collection.update_one({"caseId": cid}, {"$set": {
+                    "damageType": "None",
+                    "severity": "None",
+                    "confidenceScore": 0,
+                    "priorityScore": -1,
+                    "status": "rejected"
+                }})
             logger.info(f"❌ No valid predictions in cluster {cluster_id}")
 
     return {"status": "done"}
