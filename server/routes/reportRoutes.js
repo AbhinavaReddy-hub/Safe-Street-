@@ -15,10 +15,11 @@ router.post('/', authMiddleware.protect, logRequest, upload, handleMulterErrors,
 router.get('/', authMiddleware.protect, logRequest, reportController.getReports);
 
 // Admin Routes
-router.get('/reports', authMiddleware.protect, authMiddleware.restrictTo('admin','user','worker'), logRequest, reportController.getAdminReports);
+router.get('/reports', authMiddleware.protect, authMiddleware.restrictTo('admin'), logRequest, reportController.getAdminReports);
 router.get('/reports/severity/:severity', authMiddleware.protect, authMiddleware.restrictTo('admin'), logRequest, reportController.getAdminReportsBySeverity);
 router.post('/assign', authMiddleware.protect, authMiddleware.restrictTo('admin'), logRequest, reportController.assignReport);
-
+router.get('/assigned', authMiddleware.protect, authMiddleware.restrictTo('admin'), logRequest, reportController.getAssignedReports);
+router.get('/completed', authMiddleware.protect, authMiddleware.restrictTo('admin'), logRequest, reportController.getCompletedReports);
 // Worker Routes
 router.post('/worker/complete', authMiddleware.protect, authMiddleware.restrictTo('worker'), logRequest, reportController.completeReport);
 router.get('/worker/reports', authMiddleware.protect, authMiddleware.restrictTo('worker'), logRequest, reportController.getWorkerReports);

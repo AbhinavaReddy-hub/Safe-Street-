@@ -4,23 +4,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
-const os = require('os');
 const fs = require('fs');
 
 const app = express();
-
-const getLocalIp = () => {
-  const interfaces = os.networkInterfaces();
-  for (const ifaceName in interfaces) {
-    const iface = interfaces[ifaceName];
-    for (const item of iface) {
-      if (item.family === 'IPv4' && !item.internal) {
-        return item.address;
-      }
-    }
-  }
-  return 'localhost';
-};
 
 // Middleware
 app.use(cors());
@@ -39,6 +25,8 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api', require('./routes/reportRoutes'));
 app.use('/api/admin', require('./routes/reportRoutes'));
 
+app.use('/api/users', require('./routes/userRoutes'));
+
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -47,12 +35,9 @@ app.use((err, req, res, next) => {
     error: 'Internal Server Error'
   });
 });
-app.get('/ip', (req, res) => {
-  const ip = getLocalIp();
-  res.json({ ip });
-});
+
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT,'0.0.0.0', () => {
-  console.log(`Server running at http://localhost:3000`);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
