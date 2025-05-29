@@ -124,7 +124,7 @@ export default function AnalyzedReports() {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/users/workers`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });

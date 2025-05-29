@@ -13,12 +13,12 @@ function Sidebar() {
   const { collapsed, setCollapsed } = useCollapsed();
   const location = useLocation();
   const locationMap = {
-    "Home": "/",
-    "Analyzed Reports": "/analyzedreports",
-    "Assigned Reports": "/assignedreports",
-    "Completed Reports": "/completedreports",
-    "Team Analytics": "/analytics",
-    "Insights": "/insights",
+    "/": "Home",
+    "/analyzedreports": "Analyzed Reports",
+    "/assignedreports": "Assigned Reports",
+     "/completedreports": "Completed Reports",
+    "/analytics": "Team Analytics",
+    "/insights": "Insights",
   }
   const [activeId, setActiveId] = useState(locationMap[location.pathname]);
   useEffect(() => {

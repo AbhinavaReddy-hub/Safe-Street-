@@ -73,7 +73,7 @@ export default function CompletedReports() {
             }
 
             const apiData = await response.json();
-            console.log(apiData.data);
+            console.log(apiData.data.reverse());
 
             setReports(apiData.data);
         } catch (err) {

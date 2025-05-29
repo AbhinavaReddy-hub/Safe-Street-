@@ -38,6 +38,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 // Routes
 app.use('/api', require('./routes/reportRoutes'));
 app.use('/api/admin', require('./routes/reportRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

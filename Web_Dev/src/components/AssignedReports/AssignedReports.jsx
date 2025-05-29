@@ -75,7 +75,7 @@ export default function AssignedReports() {
 
             const apiData = await response.json();
 
-            setReports(apiData.data);
+            setReports(apiData.data.reverse());
         } catch (err) {
             console.error('Error fetching reports:', err);
             setError(`Failed to load reports: ${err.message}`);
