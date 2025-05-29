@@ -32,7 +32,7 @@ function LoginPage() {
     setError('');
 
     try {
-         const mongores = await fetch("http://192.168.207.157:3000/api/auth/login", {
+         const mongores = await fetch(`http://${LOCAL_IP}:3000/api/auth/login`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
