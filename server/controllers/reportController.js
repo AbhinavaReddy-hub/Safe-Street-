@@ -1790,8 +1790,7 @@ const getReports = async (req, res) => {
     console.error('Failed to fetch reports:', error.message);
     return res.status(500).json({ status: 'error', message: 'Failed to fetch reports' });
   }
-};
-const getAdminReports = async (req, res) => {
+};const getAdminReports = async (req, res) => {
   try {
     console.log('=== Fetching Admin Reports ===');
     const { h3Cell, priorityThreshold = 50, sortBy = 'damageResult.priorityScore', sortOrder = 'desc', page = 1, limit = 10 } = req.query;
@@ -1831,6 +1830,7 @@ const getAdminReports = async (req, res) => {
       {
         $project: {
           batchId: 1,
+          status :1,
           h3Cell: 1,
           centroid: 1,
           damageResult: 1,
@@ -1884,6 +1884,7 @@ const getAdminReports = async (req, res) => {
         {
           $project: {
             batchId: 1,
+            status:1,
             h3Cell: 1,
             centroid: 1,
             damageResult: 1,
