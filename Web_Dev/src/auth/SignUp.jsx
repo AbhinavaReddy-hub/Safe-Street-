@@ -31,7 +31,7 @@ function SignupPage() {
     
     if(checkpass(formData)){
     try{
-     const mongores = await fetch("http://192.168.207.157:3000/api/auth/register", {
+     const mongores = await fetch(`http://${LOCAL_IP}:3000/api/auth/register`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
