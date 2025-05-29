@@ -82,11 +82,11 @@ export default function AnalyzedReports() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
-  
+  const [workers, setWorkers] = useState([]);
+  const [loadingWorkers, setLoadingWorkers] = useState(false);
   // Add selectedFilter state
   const [selectedFilter, setSelectedFilter] = useState('priority');
 
-  const teams = ['Team Alpha', 'Team Beta', 'Team Gamma', 'Team Delta'];
 
   // Fixed fetchReports function with filterType parameter
   const fetchReports = async (filterType = 'priority') => {
@@ -96,14 +96,14 @@ export default function AnalyzedReports() {
       const token = localStorage.getItem('token');
       const selectedOption = filterOptions.find(option => option.value === filterType);
       const endpoint = selectedOption ? selectedOption.endpoint : `${API_BASE_URL}`;
-      
+
       const response = await fetch(endpoint, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -117,6 +117,69 @@ export default function AnalyzedReports() {
     } finally {
       setLoading(false);
     }
+  };
+  const fetchWorkers = async () => {
+    try {
+      setLoadingWorkers(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/users/workers`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiData = await response.json();
+      setWorkers(apiData.data);
+    } catch (err) {
+      console.error('Error fetching workers:', err);
+      setError(`Failed to load workers: ${err.message}`);
+    } finally {
+      setLoadingWorkers(false);
+    }
+  };
+  const assignReport = async (batchId, workerId) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      // Make API call to assign the report to worker
+      const response = await fetch(`${API_BASE_URL}/admin/assign`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          batchId: batchId,
+          workerId: workerId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      // Show success message modal
+      setShowMessageModal(true);
+      setNewMessage(`Report batch successfully assigned to worker!`);
+
+      // Refresh reports after successful assignment
+      fetchReports(selectedFilter);
+
+    } catch (err) {
+      console.error('Error assigning report:', err);
+      setError('Failed to assign report');
+    }
+
+    setShowAssignModal(false);
+    setSelectedReport(null);
+    setSelectedTeam(''); // You might want to rename this to selectedWorker
   };
 
   useEffect(() => {
@@ -132,7 +195,7 @@ export default function AnalyzedReports() {
   // Fixed ReportFilter component
   const ReportFilter = () => {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
+      <div className="bg-white rounded-xl p-4 mb-6 border border-gray-100 mt-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Filter Reports</h3>
@@ -182,20 +245,27 @@ export default function AnalyzedReports() {
     );
   };
 
-  
 
- 
+
+
 
   const AnalyzedReportCard = ({ report }) => {
     const severityColors = getSeverityColor(report.damageResult.severity);
     const statusColors = getStatusColor('analyzed');
+
+    // Get the most recent report for primary display
+    const primaryReport = report.reports[0];
+    const hasMultipleReports = report.reportCount > 1;
+
+    // Calculate average traffic congestion score
+    const avgTrafficScore = report.reports.reduce((sum, r) => sum + (r.trafficCongestionScore || 0), 0) / report.reports.length;
 
     return (
       <div className="bg-white rounded-xl shadow-sm mb-4 overflow-hidden transition-all duration-300 hover:shadow-md border border-gray-100">
         <div className="flex flex-col md:flex-row">
           <div className="w-full md:w-60 h-48 md:h-auto relative">
             <img
-              src={report.reports[0].imageUrls?.[0] || '/api/placeholder/300/200'}
+              src={primaryReport.imageUrls?.[0] || '/api/placeholder/300/200'}
               alt={report.damageResult.damageType || 'Road damage'}
               className="w-full h-full object-cover"
               onError={(e) => {
@@ -204,6 +274,15 @@ export default function AnalyzedReports() {
             />
             <div className={`absolute top-3 left-3 ${severityColors.bg} ${severityColors.text} px-2 py-1 text-xs font-medium rounded-full`}>
               {report.damageResult.severity} Severity
+            </div>
+            {hasMultipleReports && (
+              <div className="absolute top-3 right-3 bg-blue-100 text-blue-700 px-2 py-1 text-xs font-medium rounded-full">
+                {report.reportCount} Reports
+              </div>
+            )}
+            <div className={`absolute bottom-3 left-3 ${statusColors.bg} ${statusColors.text} px-2 py-1 text-xs font-medium rounded-full`}>
+              <AlertCircle size={12} className="inline mr-1" />
+              Analyzed
             </div>
           </div>
 
@@ -215,12 +294,18 @@ export default function AnalyzedReports() {
                 </h3>
                 <div className="flex items-center mt-1 text-sm text-gray-600">
                   <MapPin size={14} className="mr-1 text-gray-400" />
-                  {report.reports[0].location?.locationName || 'Unknown Location'}
+                  {primaryReport.location?.locationName || 'Unknown Location'}
                 </div>
                 <div className="flex items-center mt-1 text-sm text-blue-600">
                   <Users size={14} className="mr-1" />
-                  Reported by: {report.reports[0]._id || 'Anonymous'}
+                  {hasMultipleReports ? `${report.reportCount} similar reports` : 'Single report'}
                 </div>
+                {hasMultipleReports && (
+                  <div className="flex items-center mt-1 text-xs text-gray-500">
+                    <CircleCheck size={12} className="mr-1" />
+                    Clustered in H3 cell: {report.h3Cell?.slice(-6)}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -235,32 +320,70 @@ export default function AnalyzedReports() {
                   <p className="text-sm font-medium">{report.damageResult.priorityScore?.toFixed(1) || 'N/A'}</p>
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div>
+                  <span className="text-xs text-gray-500">Severity Weight</span>
+                  <p className="text-sm font-medium">{report.damageResult.severityWeight || 'N/A'}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500">Avg Traffic Score</span>
+                  <p className="text-sm font-medium">{avgTrafficScore.toFixed(1)}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <span className="text-xs text-gray-500">Batch ID</span>
+                  <p className="text-sm font-medium text-gray-600">{report.batchId?.slice(-8) || 'N/A'}</p>
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-between items-center mt-4">
-              <div className="flex items-center text-xs text-gray-500">
-                <Clock size={14} className="mr-1" />
-                Reported: {formatDate(report.reports[0].createdAt)}
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center text-xs text-gray-500">
+                  <Clock size={14} className="mr-1" />
+                  First Report: {formatDate(report.reports[report.reports.length - 1].createdAt)}
+                </div>
+                {hasMultipleReports && (
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Clock size={14} className="mr-1" />
+                    Latest Report: {formatDate(primaryReport.createdAt)}
+                  </div>
+                )}
               </div>
 
               <div className="flex space-x-2">
                 <button
                   className="flex items-center justify-center px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors"
-                  onClick={() => openInMaps(report.reports[0].location.coordinates)}
+                  onClick={() => openInMaps(primaryReport.location.coordinates)}
                 >
                   <MapPin size={14} className="text-gray-600" />
                   <span className="text-xs font-medium ml-1">View Map</span>
                 </button>
+
+                {/* {hasMultipleReports && (
+                  <button
+                    className="flex items-center justify-center px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-800 rounded-lg transition-colors"
+                    onClick={() => {
+                      // Handle view all reports in cluster
+                      console.log('View all reports in cluster:', report._id);
+                    }}
+                  >
+                    <Eye size={14} />
+                    <span className="text-xs font-medium ml-1">View All</span>
+                  </button>
+                )} */}
 
                 <button
                   className="flex items-center justify-center px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg transition-colors"
                   onClick={() => {
                     setSelectedReport(report);
                     setShowAssignModal(true);
+                    fetchWorkers(); // Fetch workers when opening modal
                   }}
                 >
                   <Users size={14} />
-                  <span className="text-xs font-medium ml-1">Assign Team</span>
+                  <span className="text-xs font-medium ml-1">Assign Worker</span>
                 </button>
               </div>
             </div>
@@ -271,34 +394,7 @@ export default function AnalyzedReports() {
   };
 
 
- const assignReport = async (reportId, team) => {
-        try {
-            // Here you would make an API call to assign the report
-            // For now, we'll update the local state
-            const reportToAssign = reports.analyzed.find(r => r._id === reportId);
-            if (reportToAssign) {
-                const updatedReport = {
-                    ...reportToAssign,
-                    status: 'assigned',
-                    assignedTeam: team,
-                    assignedDate: new Date().toISOString(),
-                };
 
-                setReports({
-                    ...reports,
-                    analyzed: reports.analyzed.filter(r => r._id !== reportId),
-                    assigned: [...reports.assigned, updatedReport]
-                });
-            }
-        } catch (err) {
-            console.error('Error assigning report:', err);
-            setError('Failed to assign report');
-        }
-
-        setShowAssignModal(false);
-        setSelectedReport(null);
-        setSelectedTeam('');
-    };
 
 
   const totalReports = Object.values(reports).flat().length;
@@ -355,7 +451,7 @@ export default function AnalyzedReports() {
               Refresh
             </button>
           </div>
-          
+
           {/* Add ReportFilter here */}
           <ReportFilter />
 
@@ -377,15 +473,13 @@ export default function AnalyzedReports() {
               No analyzed reports found
             </h3>
             <p className="text-gray-500">
-              {'New reports will appear here for assignment'}
-              {/* {activeTab === 'ongoing' && 'Reports assigned to teams will appear here'}
-              {activeTab === 'completed' && 'Completed reports will appear here'} */}
+              New reports will appear here for assignment
             </p>
           </div>
         ) : (
           reports.map((report) => (
             <div key={report._id}>
-              <AnalyzedReportCard report={report}/>
+              <AnalyzedReportCard report={report} />
             </div>
           ))
         )}
@@ -395,20 +489,31 @@ export default function AnalyzedReports() {
       {showAssignModal && selectedReport && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 max-w-90vw">
-            <h3 className="text-lg font-bold mb-4">Assign Team to Report</h3>
+            <h3 className="text-lg font-bold mb-4">Assign Worker to Report</h3>
             <p className="text-sm text-gray-600 mb-4">
               {selectedReport.damageResult?.damageType || selectedReport.damageType} at {selectedReport.reports?.[0]?.location?.locationName || selectedReport.location?.locationName}
             </p>
-            <select
-              value={selectedTeam}
-              onChange={(e) => setSelectedTeam(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg mb-4"
-            >
-              <option value="">Select a team...</option>
-              {teams.map(team => (
-                <option key={team} value={team}>{team}</option>
-              ))}
-            </select>
+
+            {loadingWorkers ? (
+              <div className="flex items-center justify-center py-4">
+                <RefreshCw className="animate-spin mr-2" size={16} />
+                <span className="text-sm text-gray-600">Loading workers...</span>
+              </div>
+            ) : (
+              <select
+                value={selectedTeam}
+                onChange={(e) => setSelectedTeam(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-lg mb-4"
+              >
+                <option value="">Select a worker...</option>
+                {workers.map(worker => (
+                  <option key={worker._id} value={worker._id}>
+                    {worker.name} ({worker.email})
+                  </option>
+                ))}
+              </select>
+            )}
+
             <div className="flex space-x-3">
               <button
                 onClick={() => {
@@ -421,8 +526,8 @@ export default function AnalyzedReports() {
                 Cancel
               </button>
               <button
-                onClick={() => assignReport(selectedReport._id, selectedTeam)}
-                disabled={!selectedTeam}
+                onClick={() => assignReport(selectedReport.batchId, selectedTeam)}
+                disabled={!selectedTeam || loadingWorkers}
                 className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Assign
@@ -431,8 +536,30 @@ export default function AnalyzedReports() {
           </div>
         </div>
       )}
+      {/* Add Success Message Modal after the Assign Team Modal */}
+      {showMessageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-90vw">
+            <div className="text-center">
+              <CheckCircle size={48} className="mx-auto text-green-600 mb-4" />
+              <h3 className="text-lg font-bold mb-2 text-gray-900">Assignment Successful</h3>
+              <p className="text-sm text-gray-600 mb-6">{newMessage}</p>
+              <button
+                onClick={() => {
+                  setShowMessageModal(false);
+                  setNewMessage('');
+                }}
+                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      
+
+
     </motion.div>
   );
 }
