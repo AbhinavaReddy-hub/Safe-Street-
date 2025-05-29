@@ -5,7 +5,8 @@ import LeaderBoard from '../ui/LeaderBoard';
 import { useCollapsed } from '../../context/collapse';
 import { motion } from 'framer-motion';
 import RecentReport from '../ui/RecentReport';
-
+import { useState } from 'react';
+import { useEffect } from 'react';
 
 const data = [
   { city: 'Hyderabad', reports: 120 },
@@ -16,85 +17,149 @@ const data = [
   { city: 'Kolkata', reports: 110 },
 ];
 
-const mockUser = {
-  name: 'John Doe',
-  stats: {
-    totalReports: 24,
-    pendingTasks: 5,
-    resolvedCases: 19,
-  },
-  recentReports: [
-    {
-      id: 1,
-      image: 'https://images.squarespace-cdn.com/content/v1/573365789f726693272dc91a/1704992146415-CI272VYXPALWT52IGLUB/AdobeStock_201419293.jpeg?format=1500w',
-      type: 'Pothole',
-      severity: 'High',
-      status: 'Pending',
-      location: 'Miyapur, Hyderabad',
-      date: '2024-02-20',
-    },
-    {
-      id: 2,
-      image: 'https://img.etimg.com/thumb/width-600,height-450,msid-96818695,imgsize-25308/uttarakhand-joshimath-malari-border-road-develops-cracks-due-to-land-subsidence.jpg',
-      type: 'Crack',
-      severity: 'Medium',
-      status: 'In Progress',
-      location: 'Narayanaguda',
-      date: '2024-02-19',
-    },
-    {
-      id: 3,
-      image: 'https://media.istockphoto.com/id/183851840/photo/bad-repair-pothole-in-road-t-junction-suffers-frost-damage.jpg?s=612x612&w=0&k=20&c=C6x40SIitvOnljrXy-1AZcZ16k3rhmkqnXEDVz-ifZ0=',
-      type: 'Surface Damage',
-      severity: 'Low',
-      status: 'Completed',
-      location: 'Gachibowli',
-      date: '2024-02-18',
-    },
-  ],
-};
-
 function Home() {
-  const {collapsed,setCollapsed}=useCollapsed();
+  const {collapsed, setCollapsed} = useCollapsed();
+  const [reports, setReports] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [userStats, setUserStats] = useState({
+    totalReports: 0,
+    pendingTasks: 0,
+    resolvedCases: 0,
+  });
+
+  const transformReportsData = (apiReports) => {
+    const transformedReports = [];
+    
+    apiReports.forEach((report) => {
+      report.reports.forEach((individualReport, index) => {
+        transformedReports.push({
+          id: individualReport._id,
+          image: individualReport.imageUrls?.[0] || '',
+          type: report.damageResult?.damageType || 'Unknown',
+          severity: report.damageResult?.severity || 'Unknown',
+          status: report.status || 'Pending',
+          location: individualReport.location?.locationName || 'Unknown Location',
+          date: new Date(individualReport.createdAt).toISOString().split('T')[0], 
+          priorityScore: report.damageResult?.priorityScore || 0,
+          confidenceScore: report.damageResult?.confidenceScore || 0,
+          trafficCongestionScore: individualReport.trafficCongestionScore || 0,
+          coordinates: individualReport.location?.coordinates || [],
+          caseId: individualReport.caseId,
+          allImages: individualReport.imageUrls || []
+        });
+      });
+    });
+
+    return transformedReports;
+  };
+
+  const fetchReports = async (filterType = 'priority') => {
+    try {
+      setError(null);
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const endpoint = `http://localhost:3000/api/admin/reports/severity/high?page=1&limit=3`;
+      
+      const response = await fetch(endpoint, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiData = await response.json();
+      
+      const transformedReports = transformReportsData(apiData.data);
+      
+      setReports(transformedReports.slice(0, 3));
+
+      const totalReports = apiData.total || 0;
+      const pendingReports = transformedReports.filter(report => 
+        report.status === 'Pending' || !report.status
+      ).length;
+      const resolvedReports = transformedReports.filter(report => 
+        report.status === 'Completed' || report.status === 'analysed'
+      ).length;
+
+      setUserStats({
+        totalReports: totalReports,
+        pendingTasks: pendingReports,
+        resolvedCases: resolvedReports,
+      });
+
+    } catch (err) {
+      console.error('Error fetching reports:', err);
+      setError(`Failed to load reports: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  // Capitalize first letter of strings
+  const capitalize = (str) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+  console.log('Reports:', reports);
+
   return (
-   
-      <motion.div
+    <motion.div
       initial={{marginLeft:"21%"}}
-       animate={{ marginLeft: collapsed ? "4rem" : "21%" }}
-       transition={{ duration: 0.5, ease: "easeInOut" }}     
-     className="mt-5 flex flex-col gap-7 h-screen"
+      animate={{ marginLeft: collapsed ? "4rem" : "21%" }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}     
+      className="mt-5 flex flex-col gap-7 h-screen"
       style={{
         width: collapsed ? "calc(100vw - 4rem - 3%)" : "calc(100vw - 21% - 3%)",
         paddingRight: "1rem",
       }}
-      >
-        <div className='flex flex-col gap-2'>
-          <h3 className='font-serif text-2xl font-medium'>Welcome {"Ozair"}</h3>
-          <div className="w-2xl px-5 py-6 bg-white mt-[1px] mx-2 rounded-xl shadow-md">
-              <div className="flex justify-between">
-                <div className="flex-1 flex flex-col items-center bg-amber-700/[20%] p-4 rounded-2xl mr-2">
-                  <p className="text-2xl font-bold">{mockUser.stats.totalReports}</p>
-                  <p className="text-[16px] text-blue-700 text-center mt-1">Total Reports</p>
-                </div>
-                <div className="flex-1 flex flex-col items-center bg-amber-700/[20%] p-4 rounded-2xl mx-2">
-                  <p className="text-2xl font-bold">{mockUser.stats.pendingTasks}</p>
-                  <p className="text-[16px] text-yellow-700 text-center mt-1">Pending Tasks</p>
-                </div>
-                <div className="flex-1 flex flex-col items-center bg-amber-700/[20%] p-4 rounded-2xl ml-2">
-                  <p className="text-2xl font-bold">{mockUser.stats.resolvedCases}</p>
-                  <p className="text-[16px] text-green-700 text-center mt-1">Resolved</p>
-                </div>
-              </div>
+    >
+      <div className='flex flex-col gap-2'>
+        <h3 className='font-serif text-2xl font-medium'>Welcome {localStorage.getItem('email')}</h3>
+        <div className="w-2xl px-5 py-6 bg-white mt-[1px] mx-2 rounded-xl shadow-md">
+          <div className="flex justify-between">
+            <div className="flex-1 flex flex-col items-center bg-amber-700/[20%] p-4 rounded-2xl mr-2">
+              <p className="text-2xl font-bold">{userStats.totalReports}</p>
+              <p className="text-[16px] text-blue-700 text-center mt-1">Total Reports</p>
             </div>
-
+            <div className="flex-1 flex flex-col items-center bg-amber-700/[20%] p-4 rounded-2xl mx-2">
+              <p className="text-2xl font-bold">{userStats.pendingTasks}</p>
+              <p className="text-[16px] text-yellow-700 text-center mt-1">Pending Tasks</p>
+            </div>
+            <div className="flex-1 flex flex-col items-center bg-amber-700/[20%] p-4 rounded-2xl ml-2">
+              <p className="text-2xl font-bold">{userStats.resolvedCases}</p>
+              <p className="text-[16px] text-green-700 text-center mt-1">Resolved</p>
+            </div>
+          </div>
         </div>
-        <div className='flex gap-7'>
+      </div>
 
+      <div className=''>
         <Chart/>
-        <LeaderBoard/>
+        {/* <LeaderBoard/> */}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center items-center p-8">
+          <div className="text-lg">Loading recent reports...</div>
         </div>
-        <RecentReport/>
-      </motion.div>
+      ) : error ? (
+        <div className="flex justify-center items-center p-8">
+          <div className="text-red-600">{error}</div>
+        </div>
+      ) : (
+        <RecentReport reports={reports} />
+      )}
+    </motion.div>
   )
 }
 

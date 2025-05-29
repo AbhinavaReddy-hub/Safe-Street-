@@ -13,12 +13,12 @@ function Sidebar() {
   const { collapsed, setCollapsed } = useCollapsed();
   const location = useLocation();
   const locationMap = {
-    "Home": "/",
-    "Analyzed Reports": "/analyzedreports",
-    "Assigned Reports": "/assignedreports",
-    "Completed Reports": "/completedreports",
-    "Team Analytics": "/analytics",
-    "Insights": "/insights",
+    "/": "Home",
+    "/analyzedreports": "Analyzed Reports",
+    "/assignedreports": "Assigned Reports",
+     "/completedreports": "Completed Reports",
+    "/analytics": "Team Analytics",
+    "/insights": "Insights",
   }
   const [activeId, setActiveId] = useState(locationMap[location.pathname]);
   useEffect(() => {
@@ -61,8 +61,8 @@ function Sidebar() {
                 <div className="mt-6 flex flex-col items-center gap-4">
                   <FaRegCircleUser className="text-6xl" />
                   <div className="flex flex-col items-center">
-                    <h3 className="font-serif text-2xl">Ozair</h3>
-                    <p className="text-gray-600 text-base">Narayanguda Authority</p>
+                    <h3 className="font-serif text-2xl">{localStorage.getItem('email')??'Authority'}</h3>
+                    <p className="text-gray-600 text-base"> Authority</p>
                   </div>
                 </div>
               </div>

@@ -34,7 +34,6 @@ function LoginPage() {
     setError('');
 
     try {
-      console.log(LOCAL_IP)
          const mongores = await fetch(`http://${ip}:3000/api/auth/login`, {
                 method: 'POST',
                 headers: {
@@ -53,6 +52,7 @@ function LoginPage() {
       if (mongojson.status==='success') {
         localStorage.removeItem('token');
         localStorage.setItem('token', mongojson.token);
+        localStorage.setItem('email',formData.email);
         window.location.href = '/'
       } else {
         setError(mongojson.message);

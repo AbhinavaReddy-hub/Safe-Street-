@@ -33,7 +33,6 @@ const Chart = () => {
 
 
     const token = localStorage.getItem('token');
-    console.log(LOCAL_IP);
     fetch(`http://192.168.43.97:3000/api/admin/reports?page=1&limit=10&priorityThreshold=50&sortBy=damageResult.priorityScore&sortOrder=desc`, {
       method: 'GET',
       headers: {

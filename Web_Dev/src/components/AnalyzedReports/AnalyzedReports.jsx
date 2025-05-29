@@ -124,7 +124,7 @@ export default function AnalyzedReports() {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/users/workers`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -210,7 +210,7 @@ export default function AnalyzedReports() {
                 className={`
                   flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
                   ${selectedFilter === option.value
-                    ? 'bg-blue-100 text-blue-800 border-2 border-blue-200 shadow-sm'
+                    ? 'bg-amber-700/[20%] border-2 border-amber-700 shadow-sm'
                     : 'bg-gray-50 text-gray-700 border-2 border-transparent hover:bg-gray-100 hover:border-gray-200'
                   }
                 `}
@@ -218,7 +218,7 @@ export default function AnalyzedReports() {
                 <span className="mr-2">{option.icon}</span>
                 {option.label}
                 {selectedFilter === option.value && (
-                  <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="ml-2 w-2 h-2 bg-amber-700 rounded-full"></span>
                 )}
               </button>
             ))}
@@ -296,7 +296,7 @@ export default function AnalyzedReports() {
                   <MapPin size={14} className="mr-1 text-gray-400" />
                   {primaryReport.location?.locationName || 'Unknown Location'}
                 </div>
-                <div className="flex items-center mt-1 text-sm text-blue-600">
+                <div className="flex items-center mt-1 text-sm text-amber-700">
                   <Users size={14} className="mr-1" />
                   {hasMultipleReports ? `${report.reportCount} similar reports` : 'Single report'}
                 </div>
@@ -412,7 +412,7 @@ export default function AnalyzedReports() {
         }}
       >
         <div className="text-center">
-          <RefreshCw className="animate-spin mx-auto mb-4 text-blue-600" size={48} />
+          <RefreshCw className="animate-spin mx-auto mb-4 text-amber-700" size={48} />
           <p className="text-lg text-gray-600">Loading reports...</p>
         </div>
       </motion.div>
@@ -445,7 +445,7 @@ export default function AnalyzedReports() {
             </div>
             <button
               onClick={() => fetchReports(selectedFilter)}
-              className="mt-4 md:mt-0 flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="mt-4 md:mt-0 flex items-center px-4 py-2 bg-amber-800 text-white rounded-lg hover:scale-104 cursor-pointer transition-colors"
             >
               <RefreshCw size={16} className="mr-2" />
               Refresh

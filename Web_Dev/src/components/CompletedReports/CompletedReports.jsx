@@ -73,7 +73,7 @@ export default function CompletedReports() {
             }
 
             const apiData = await response.json();
-            console.log(apiData.data);
+            console.log(apiData.data.reverse());
 
             setReports(apiData.data);
         } catch (err) {
@@ -228,7 +228,7 @@ export default function CompletedReports() {
                 }}
             >
                 <div className="text-center">
-                    <RefreshCw className="animate-spin mx-auto mb-4 text-blue-600" size={48} />
+                    <RefreshCw className="animate-spin mx-auto mb-4 text-amber-700" size={48} />
                     <p className="text-lg text-gray-600">Loading reports...</p>
                 </div>
             </motion.div>
@@ -260,8 +260,8 @@ export default function CompletedReports() {
                             </div>
                         </div>
                         <button
-                            onClick={() => fetchReports(selectedFilter)}
-                            className="mt-4 md:mt-0 flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            onClick={() => fetchReports()}
+                            className="mt-4 md:mt-0 flex items-center px-4 py-2 bg-amber-800 text-white rounded-lg hover:scale-104 cursor-pointer transition-colors"
                         >
                             <RefreshCw size={16} className="mr-2" />
                             Refresh

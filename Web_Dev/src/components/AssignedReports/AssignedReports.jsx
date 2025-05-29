@@ -75,7 +75,7 @@ export default function AssignedReports() {
 
             const apiData = await response.json();
 
-            setReports(apiData.data);
+            setReports(apiData.data.reverse());
         } catch (err) {
             console.error('Error fetching reports:', err);
             setError(`Failed to load reports: ${err.message}`);
@@ -131,7 +131,7 @@ export default function AssignedReports() {
                                     <MapPin size={14} className="mr-1 text-gray-400" />
                                     {reportData.location?.locationName || 'Unknown Location'}
                                 </div>
-                                <div className="flex items-center mt-1 text-sm text-blue-600">
+                                <div className="flex items-center mt-1 text-sm text-amber-700">
                                     <Users size={14} className="mr-1" />
                                     Assigned to: {workerData?.name || workerData?.email || 'Unknown Worker'}
                                 </div>
@@ -224,7 +224,7 @@ export default function AssignedReports() {
                 }}
             >
                 <div className="text-center">
-                    <RefreshCw className="animate-spin mx-auto mb-4 text-blue-600" size={48} />
+                    <RefreshCw className="animate-spin mx-auto mb-4 text-amber-700" size={48} />
                     <p className="text-lg text-gray-600">Loading reports...</p>
                 </div>
             </motion.div>
@@ -257,7 +257,7 @@ export default function AssignedReports() {
                         </div>
                         <button
                             onClick={() => fetchReports()}
-                            className="mt-4 md:mt-0 flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            className="mt-4 md:mt-0 flex items-center px-4 py-2 bg-amber-800 text-white rounded-lg hover:scale-104 cursor-pointer transition-colors"
                         >
                             <RefreshCw size={16} className="mr-2" />
                             Refresh
