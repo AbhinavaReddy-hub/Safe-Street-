@@ -3,12 +3,14 @@ import { motion } from 'framer-motion';
 import { FaRegCircleUser, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { IoMail, IoLockClosed, IoPerson, IoLocation } from "react-icons/io5";
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useIp } from '../context/IpContext';
 
 function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const {ip} = useIp();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -31,7 +33,7 @@ function SignupPage() {
     
     if(checkpass(formData)){
     try{
-     const mongores = await fetch(`http://${LOCAL_IP}:3000/api/auth/register`, {
+     const mongores = await fetch(`http://${ip}:3000/api/auth/register`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
