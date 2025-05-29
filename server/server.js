@@ -36,7 +36,7 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use('/api/auth', require('./routes/authRoutes'));
 // app.use('/api/reports', require('./routes/reportRoutes'));
 // Routes
-app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api', require('./routes/reportRoutes'));
 app.use('/api/admin', require('./routes/reportRoutes'));
 
 // Error Handling Middleware
