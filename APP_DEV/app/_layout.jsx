@@ -2,10 +2,12 @@ import { StyleSheet, Text, View } from 'react-native'
 import {Slot,Stack} from 'expo-router';
 import {useFonts} from 'expo-font';
 import {UserDetailContext} from '../context/UserDetailContext';
+import { IpProvider } from '../context/IpContext';
 import { useState } from 'react';
 import "../global.css";
 import 'expo-router/entry';
 import { preventAutoHideAsync } from 'expo-splash-screen';
+import { useIp } from '../context/IpContext';
 
   preventAutoHideAsync();
 
@@ -24,6 +26,7 @@ const RootLayout = () => {
     //   <Slot/>
     //   <Text>Footer</Text>
     // </>
+    <IpProvider>
     <UserDetailContext.Provider value={{userDetail,setUserDetail}}>
 
     {/* <Stack screenOptions={{headerShown:false}}>
@@ -31,6 +34,7 @@ const RootLayout = () => {
     </Stack> */}
     <Slot/>
     </UserDetailContext.Provider>
+    </IpProvider>
   )
 }
 

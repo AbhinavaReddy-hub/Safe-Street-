@@ -46,6 +46,15 @@ const Footer = () => {
           <Text className={`text-16 ${isActive('/Upload') ? 'text-white' : 'text-black'}`}>Upload</Text>
       </Pressable>
       
+      {userDetail?.role==='worker'?
+        <Pressable
+          className="flex-col gap-1 items-center justify-center pl-5"
+          onPress={() => router.replace('/History')}>
+          <FontAwesome5 name="history" size={24} color={isActive('/History') ? 'white' : 'black'} />
+          <Text className={`text-16 ${isActive('/Tasks') ? 'text-white' : 'text-black'}`}>My History</Text>
+        </Pressable>
+
+        :
       <Pressable
         className="flex-col gap-1 items-center justify-center ml-5 relative"
         onPress={() => router.replace('/Notification')}>
@@ -55,6 +64,7 @@ const Footer = () => {
         </View>}
         <Text className={`text-16 ${isActive('/Notification') ? 'text-white' : 'text-black'}`}>Notifications</Text>
       </Pressable>
+      }
 
       <Pressable
         className="flex-col gap-1 items-center justify-center"

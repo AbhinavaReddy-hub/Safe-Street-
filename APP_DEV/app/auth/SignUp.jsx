@@ -8,6 +8,7 @@ import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/
 import { auth, db } from '../../config/fireBaseConfig';
 import { setDoc, doc } from 'firebase/firestore';
 import { UserDetailContext } from '../../context/UserDetailContext';
+import { useIp } from '../../context/IpContext';
 import signup from '../../assets/images/signup.jpg';
 
 export default function SignUp() {
@@ -21,6 +22,7 @@ export default function SignUp() {
   const [emailVerified, setEmailVerified] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const {ip} = useIp();
 
   const CreateNewAccount = async () => {
   setLoading(true);
@@ -52,7 +54,7 @@ export default function SignUp() {
           await auth.currentUser.reload();
           if (auth.currentUser.emailVerified) {
             setEmailVerified(true);
-            const mongores = await fetch("http://192.168.43.97:3000/api/auth/register", {
+            const mongores = await fetch(`http://${ip}:3000/api/auth/register`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

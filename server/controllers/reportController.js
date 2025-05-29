@@ -2029,6 +2029,7 @@ const assignReport = async (req, res) => {
 
 
 const completeReport = async (req, res) => {
+  console.log("helj")
   try {
     console.log('=== Completing Report ===');
     console.log('Raw request body:', req.body);
