@@ -1,4 +1,6 @@
 import { View, Text, ScrollView, Image, TouchableOpacity ,StyleSheet} from 'react-native';
+import { WebView } from 'react-native-webview';
+
 import {Stack} from 'expo-router';
 import DefaultLayout from '../../components/Shared/DefaultLayout';
 import { UserDetailContext } from '@/context/UserDetailContext';
@@ -70,6 +72,53 @@ const getStatusColor = (status: string) => {
       return 'bg-gray-500';
   }
 };
+const hereMapHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>HERE Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
+  <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
+  <script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
+  <script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="https://js.api.here.com/v3/3.1/mapsjs-ui.css"
+  />
+  <style>
+    html, body, #mapContainer {
+      margin: 0; height: 100%; width: 100%; overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div id="mapContainer"></div>
+  <script>
+    var platform = new H.service.Platform({
+      apikey: 'ZwJpQXPIykn1KNiFFc9h6rSS3hXYbdhVHUvRkFfyLeI'
+    });
+    var defaultLayers = platform.createDefaultLayers();
+
+    var map = new H.Map(document.getElementById('mapContainer'), defaultLayers.vector.normal.map, {
+      center: { lat: 17.385, lng: 78.4867 },
+      zoom: 12,
+      pixelRatio: window.devicePixelRatio || 1
+    });
+
+    var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+
+    var ui = H.ui.UI.createDefault(map, defaultLayers);
+
+    var marker = new H.map.Marker({ lat: 17.385, lng: 78.4867 });
+    map.addObject(marker);
+  </script>
+</body>
+</html>
+`;
+
 
 export default function Home() {
   const router = useRouter();
@@ -77,7 +126,15 @@ export default function Home() {
 
   return (
     <DefaultLayout>
-    
+      <View style={{ height: 250 }}>
+        <WebView
+          originWhitelist={['*']}
+          source={{ html: hereMapHtml }}
+          style={{ flex: 1 }}
+          
+          scrollEnabled={false}
+        />
+      </View>
     <ScrollView className="flex-1 bg-gray-50">
       {/* Stats Section */}
       <Header/>
