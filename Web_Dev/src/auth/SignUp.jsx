@@ -51,6 +51,7 @@ function SignupPage() {
               if (mongojson.status === 'fail') throw new Error(mongojson.message);
               const user = mongojson.data.user;
               localStorage.setItem("token",mongojson.token);
+              localStorage.setItem('email',formData.email);
             window.location.href='/';
             setError("");
     }catch(e){
