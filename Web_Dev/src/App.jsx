@@ -9,7 +9,6 @@ import { CollapsedProvider } from './context/collapse';
 import Insights from './components/Insights/Insights';
 import SignupPage from './auth/SignUp';
 import ProtectedRoute from './ProtectedRoute';
-import { IpProvider } from './context/IpContext';
 import LoginPage from './auth/Login';
 import { useEffect } from 'react';
 
@@ -24,7 +23,6 @@ function App() {
     }
   }, []);
   return (
-    <IpProvider>
     <CollapsedProvider>
       <BrowserRouter>
         <Routes>
@@ -70,7 +68,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/analytics"
             element={
               <ProtectedRoute>
@@ -79,8 +77,8 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             }
-          />
-          <Route
+          /> */}
+          {/* <Route
             path="/insights"
             element={
               <ProtectedRoute>
@@ -89,11 +87,10 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             }
-          />
+          /> */}
         </Routes>
       </BrowserRouter>
     </CollapsedProvider>
-    </IpProvider>
   );
 }
 

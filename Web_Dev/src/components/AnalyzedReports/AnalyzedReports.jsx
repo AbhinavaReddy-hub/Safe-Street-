@@ -49,25 +49,25 @@ const filterOptions = [
   {
     value: 'priority',
     label: 'Priority Based',
-    endpoint: `${API_BASE_URL}/reports`,
+    endpoint: `${API_BASE_URL}/admin/reports`,
     icon: '📊'
   },
   {
     value: 'high',
     label: 'High Severity',
-    endpoint: `${API_BASE_URL}/admin/reports/severity/high?page=1&limit=10`,
+    endpoint: `${API_BASE_URL}/admin/reports/severity/high?page=1&limit=1000`,
     icon: '🔴'
   },
   {
     value: 'medium',
     label: 'Medium Severity',
-    endpoint: `${API_BASE_URL}/admin/reports/severity/medium?page=1&limit=10`,
+    endpoint: `${API_BASE_URL}/admin/reports/severity/medium?page=1&limit=1000`,
     icon: '🟡'
   },
   {
     value: 'low',
     label: 'Low Severity',
-    endpoint: `${API_BASE_URL}/admin/reports/severity/low?page=1&limit=10`,
+    endpoint: `${API_BASE_URL}/admin/reports/severity/low?page=1&limit=1000`,
     icon: '🟢'
   }
 ];

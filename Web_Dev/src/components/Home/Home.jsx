@@ -26,8 +26,9 @@ function Home() {
     totalReports: 0,
     pendingTasks: 0,
     resolvedCases: 0,
-  });
 
+  });
+ const [countData,setCountData]=useState({});
   const transformReportsData = (apiReports) => {
     const transformedReports = [];
     
@@ -59,37 +60,61 @@ function Home() {
       setError(null);
       setLoading(true);
       const token = localStorage.getItem('token');
-      const endpoint = `http://localhost:3000/api/admin/reports/severity/high?page=1&limit=3`;
-      
-      const response = await fetch(endpoint, {
+      const endpoint1 = `http://localhost:3000/api/admin/reports/severity/high?page=1&limit=3`;
+      const endpoint2=`http://localhost:3000/api/admin/reports`;
+      const endpoint3= "http://localhost:3000/api/assigned";
+      const endpoint4 ="http://localhost:3000/api/completed";
+      const response1 = await fetch(endpoint1, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const response2 = await fetch(endpoint2, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+       const response3 = await fetch(endpoint3, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+       const response4 = await fetch(endpoint4, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response1.ok) {
+        throw new Error(`HTTP error! status: ${response1.status}`);
+      }
+      if (!response2.ok) {
+        throw new Error(`HTTP error! status: ${response2.status}`);
+      }
+      if (!response2.ok) {
+        throw new Error(`HTTP error! status: ${response3.status}`);
+      }
+      if (!response2.ok) {
+        throw new Error(`HTTP error! status: ${response4.status}`);
       }
 
-      const apiData = await response.json();
-      
+      const apiData = await response1.json();
+      const countData = await response2.json();
+      const assigned = await response3.json();
+      const completed = await response4.json()
       const transformedReports = transformReportsData(apiData.data);
       
       setReports(transformedReports.slice(0, 3));
 
-      const totalReports = apiData.total || 0;
-      const pendingReports = transformedReports.filter(report => 
-        report.status === 'Pending' || !report.status
-      ).length;
-      const resolvedReports = transformedReports.filter(report => 
-        report.status === 'Completed' || report.status === 'analysed'
-      ).length;
+      const totalReports = countData.total || 0;
 
       setUserStats({
         totalReports: totalReports,
-        pendingTasks: pendingReports,
-        resolvedCases: resolvedReports,
+        pendingTasks: assigned.count||0,
+        resolvedCases: completed.count || 0,
       });
 
     } catch (err) {

@@ -3,13 +3,11 @@ import { motion } from 'framer-motion';
 import { FaRegCircleUser, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { IoMail, IoLockClosed } from "react-icons/io5";
 import { Link, useNavigate } from 'react-router-dom';
-import { useIp } from '../context/IpContext';
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const {ip} = useIp();
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
@@ -34,7 +32,7 @@ function LoginPage() {
     setError('');
 
     try {
-         const mongores = await fetch(`http://${ip}:3000/api/auth/login`, {
+         const mongores = await fetch(`http://localhost:3000/api/auth/login`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
