@@ -195,7 +195,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("main")
 
 # MongoDB setup
-MONGO_URI = "mongodb+srv://safestreet:abcd@safestreet.n7escz5.mongodb.net/?retryWrites=true&w=majority&appName=SafeStreet"
+MONGO_URI = ""
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 db = client["test"]
 reports_collection = db["reports"]
@@ -316,7 +316,12 @@ def do_batch_analysis():
                        (pred["severityWeight"] == best["severityWeight"] and pred["confidenceScore"] > best["confidenceScore"]):
                         best = pred
             if best:
-                best["priorityScore"] = round(best["severityWeight"] * case.get("trafficCongestionScore", 1.0), 2)
+                traffic = case.get("trafficCongestionScore", 1.0)
+                severity = best["severityWeight"]
+                num_cases = len(group)
+                # Weights: w1 > w2 > w3
+                w1, w2, w3 = 0.5, 0.3, 0.2
+                best["priorityScore"] = round(traffic*w1 + severity*w2 + num_cases*w3, 2)
                 case["finalPrediction"] = best
                 results.append(case)
 
