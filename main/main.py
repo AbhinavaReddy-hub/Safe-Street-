@@ -195,7 +195,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("main")
 
 # MongoDB setup
-MONGO_URI = ""
+MONGO_URI = "mongodb+srv://safestreet:abcd@safestreet.n7escz5.mongodb.net/?retryWrites=true&w=majority&appName=SafeStreet"
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 db = client["test"]
 reports_collection = db["reports"]
@@ -210,7 +210,7 @@ cnn_input_size = (224, 224)
 processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
 config = DetrConfig.from_pretrained("facebook/detr-resnet-50", num_labels=9)
 model = DetrForObjectDetection(config)
-model_path = "model.safetensors"
+model_path = r"C:\\Users\\OZAIR\\Desktop\\model.safetensors"
 state_dict = load_file(model_path)
 model.load_state_dict(state_dict)
 model.eval()
