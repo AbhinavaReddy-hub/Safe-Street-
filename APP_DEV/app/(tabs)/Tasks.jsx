@@ -131,7 +131,7 @@ console.log('Raw response body:', text);
           className="w-32 h-32" 
           resizeMode="cover"
         />
-        <View className="flex-1 p-4">
+        <View className="flex-1 p-4 pr-10">
           <View className="flex-row justify-between items-start mb-2">
             <View>
               <Text className="text-lg font-bold text-gray-900">
