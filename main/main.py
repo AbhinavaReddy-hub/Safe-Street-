@@ -202,7 +202,7 @@ reports_collection = db["reports"]
 batches_collection = db["batchReports"]
 
 # Load the road validity classifier
-cnn_model_path = "/Users/raghupersonal/Desktop/maps updated/Safe-Street-/main/road_classifier_model (1).keras"
+cnn_model_path = "road_classifier_model (1).keras"
 road_classifier = load_model(cnn_model_path)
 cnn_input_size = (224, 224)
 
@@ -210,7 +210,7 @@ cnn_input_size = (224, 224)
 processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
 config = DetrConfig.from_pretrained("facebook/detr-resnet-50", num_labels=9)
 model = DetrForObjectDetection(config)
-model_path = r"/Users/raghupersonal/Desktop/models/model.safetensors"
+model_path = "model.safetensors"
 state_dict = load_file(model_path)
 model.load_state_dict(state_dict)
 model.eval()
