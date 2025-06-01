@@ -53,7 +53,7 @@ app.get('/ip', (req, res) => {
   res.json({ ip });
 });
 // Start Server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT,'0.0.0.0', () => {
   console.log(`Server running at http://localhost:3000`);
 });

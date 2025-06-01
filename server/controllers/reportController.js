@@ -1795,7 +1795,7 @@ const getReports = async (req, res) => {
 const getAdminReports = async (req, res) => {
   try {
     console.log('=== Fetching Admin Reports ===');
-    const { h3Cell, priorityThreshold = 50, sortBy = 'damageResult.priorityScore', sortOrder = 'desc', page = 1, limit = 10 } = req.query;
+    const { h3Cell, priorityThreshold = 50, sortBy = 'damageResult.priorityScore', sortOrder = 'desc', page = 1, limit = 1000} = req.query;
 
     const batchQuery = { 'damageResult.priorityScore': { $gte: parseFloat(priorityThreshold) } };
     if (h3Cell) batchQuery.h3Cell = h3Cell;

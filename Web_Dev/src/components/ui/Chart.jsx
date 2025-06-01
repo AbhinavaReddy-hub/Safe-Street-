@@ -1,13 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { Hexagon } from 'lucide-react';
-import { useIp } from '../../context/IpContext';
 
 
 
 const Chart = () => {
   const mapRef = useRef(null);
-  const { ip } = useIp();
-  const LOCAL_IP = '192.168.1.5';
 
   useEffect(() => {
     const platform = new window.H.service.Platform({
@@ -31,9 +28,8 @@ const Chart = () => {
     new window.H.mapevents.Behavior(new window.H.mapevents.MapEvents(map));
     const ui = window.H.ui.UI.createDefault(map, defaultLayers);
 
-
     const token = localStorage.getItem('token');
-    fetch(`http://localhost:3000/api/admin/reports?page=1&limit=10&priorityThreshold=50&sortBy=damageResult.priorityScore&sortOrder=desc`, {
+    fetch(`http://localhost:3000/api/admin/reports`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

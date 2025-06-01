@@ -15,7 +15,7 @@ router.post('/reports', authMiddleware.protect, logRequest, upload, handleMulter
 router.get('/reports', authMiddleware.protect, logRequest, reportController.getReports);
 
 // Admin Routes
-router.get('/reports', authMiddleware.protect, authMiddleware.restrictTo('admin'), logRequest, reportController.getAdminReports);
+router.get('/admin/reports', authMiddleware.protect, authMiddleware.restrictTo('admin'), logRequest, reportController.getAdminReports);
 router.get('/reports/severity/:severity', authMiddleware.protect, authMiddleware.restrictTo('admin'), logRequest, reportController.getAdminReportsBySeverity);
 router.post('/assign', authMiddleware.protect, authMiddleware.restrictTo('admin'), logRequest, reportController.assignReport);
 router.get('/assigned', authMiddleware.protect, authMiddleware.restrictTo('admin'), logRequest, reportController.getAssignedReports);

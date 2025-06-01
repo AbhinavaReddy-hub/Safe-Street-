@@ -7,7 +7,7 @@ import { FaRegCircleUser } from "react-icons/fa6";
 import { IoLogOutSharp } from "react-icons/io5";
 import { useCollapsed } from '../../context/collapse';
 
-const nav = ['Home', 'Analyzed Reports','Assigned Reports', 'Completed Reports', 'Team Analytics', 'Insights'];
+const nav = ['Home', 'Analyzed Reports','Assigned Reports', 'Completed Reports',];
 
 function Sidebar() {
   const { collapsed, setCollapsed } = useCollapsed();
