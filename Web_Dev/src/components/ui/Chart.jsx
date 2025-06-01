@@ -33,7 +33,7 @@ const Chart = () => {
 
 
     const token = localStorage.getItem('token');
-    fetch(`http://192.168.43.97:3000/api/admin/reports?page=1&limit=10&priorityThreshold=50&sortBy=damageResult.priorityScore&sortOrder=desc`, {
+    fetch(`http://localhost:3000/api/admin/reports?page=1&limit=10&priorityThreshold=50&sortBy=damageResult.priorityScore&sortOrder=desc`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
