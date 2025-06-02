@@ -202,7 +202,7 @@ reports_collection = db["reports"]
 batches_collection = db["batchReports"]
 
 # Load the road validity classifier
-cnn_model_path = "/Users/raghupersonal/Desktop/maps updated/Safe-Street-/main/road_classifier_model (1).keras"
+cnn_model_path = r"C:\Users\avana\OneDrive\Desktop\finalfix\Safe-Street-\main\road_classifier_model (1).keras"
 road_classifier = load_model(cnn_model_path)
 cnn_input_size = (224, 224)
 
@@ -210,7 +210,7 @@ cnn_input_size = (224, 224)
 processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
 config = DetrConfig.from_pretrained("facebook/detr-resnet-50", num_labels=9)
 model = DetrForObjectDetection(config)
-model_path = r"/Users/raghupersonal/Desktop/models/model.safetensors"
+model_path = r"C:\Users\avana\Downloads\vit_detr_3__model.safetensors"
 state_dict = load_file(model_path)
 model.load_state_dict(state_dict)
 model.eval()
@@ -229,6 +229,17 @@ label_to_damage_type = {
     7: "patch",
     8: "crack"
 }
+# custom_labels = {
+#     0: "Wheel mark part (D00)",
+#     1: "Construction joint part (D01)",
+#     2: "Equal interval (D10)",
+#     3: "Construction joint part (D11)",
+#     4: "Partial pavement, overall pavement (D20)",
+#     5: "Rutting, bump, pothole, separation (D40)",
+#     6: "Cross walk blur (D43)",
+#     7: "White line blur (D44)",
+#     8: "D50 (Label not in the table)"
+# }
 severity_weights = {"low": 1, "medium": 2, "high": 3}
 
 def area_to_severity(area: float) -> str:
@@ -316,7 +327,12 @@ def do_batch_analysis():
                        (pred["severityWeight"] == best["severityWeight"] and pred["confidenceScore"] > best["confidenceScore"]):
                         best = pred
             if best:
-                best["priorityScore"] = round(best["severityWeight"] * case.get("trafficCongestionScore", 1.0), 2)
+                traffic = case.get("trafficCongestionScore", 1.0)
+                severity = best["severityWeight"]
+                num_cases = len(group)
+                # Weights: w1 > w2 > w3
+                w1, w2, w3 = 0.5, 0.3, 0.2
+                best["priorityScore"] = round(traffic*w1 + severity*w2 + num_cases*w3, 2)
                 case["finalPrediction"] = best
                 results.append(case)
 
