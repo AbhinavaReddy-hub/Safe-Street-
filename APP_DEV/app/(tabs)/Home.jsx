@@ -15,6 +15,7 @@ import { useContext, useState } from 'react';
 
 
 const getSeverityColor = (severity) => {
+  if(!severity) return 'bg-gray-500';
   switch (severity.toLowerCase()) {
     case 'high':
       return 'bg-red-500';

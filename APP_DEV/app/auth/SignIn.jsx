@@ -21,8 +21,10 @@ import { auth, db } from '../../config/fireBaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { getDoc, doc } from 'firebase/firestore';
 import { UserDetailContext } from '../../context/UserDetailContext';
+import { useIp } from '../../context/IpContext';
 
 import signin from '../../assets/images/login.jpg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function SignIn() {
@@ -31,7 +33,8 @@ export default function SignIn() {
   const [pass, setPass] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { setUserDetail } = useContext(UserDetailContext);
+  const { userDetail,setUserDetail } = useContext(UserDetailContext);
+  const {ip} = useIp();
   
 
   const onSignin = async () => {
@@ -74,7 +77,35 @@ export default function SignIn() {
       }
 
       await getUserDetails();
-      router.replace('../(tabs)/Home');
+      const mongores = await fetch(`http://${ip}:3000/api/auth/login`,{
+         method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+         
+            email: email,
+            password: pass,
+          
+          }),
+      });
+      const mongojson = await mongores.json()
+      console.log(mongojson);
+     
+      if (mongojson.status === "success" && mongojson.data?.user?.role === "user") {
+        const user = mongojson.data.user;
+        console.log(user);
+        AsyncStorage.removeItem('userToken');
+        AsyncStorage.removeItem('userData');
+        await AsyncStorage.setItem('userToken', mongojson.token);
+        await AsyncStorage.setItem('userData', JSON.stringify(user));
+
+        setUserDetail(user);
+        console.log(userDetail);
+        router.replace('../(tabs)/Home');
+      }else{
+        throw new TeamNotFoundError();
+      } 
     } catch (e) {
       console.error(e);
       ToastAndroid.show('Incorrect Email or Password', ToastAndroid.SHORT);
