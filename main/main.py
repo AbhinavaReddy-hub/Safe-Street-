@@ -202,7 +202,7 @@ reports_collection = db["reports"]
 batches_collection = db["batchReports"]
 
 # Load the road validity classifier
-cnn_model_path = "road_classifier_model (1).keras"
+cnn_model_path = r"C:\Users\avana\OneDrive\Desktop\finalfix\Safe-Street-\main\road_classifier_model (1).keras"
 road_classifier = load_model(cnn_model_path)
 cnn_input_size = (224, 224)
 
@@ -229,6 +229,17 @@ label_to_damage_type = {
     7: "patch",
     8: "crack"
 }
+# custom_labels = {
+#     0: "Wheel mark part (D00)",
+#     1: "Construction joint part (D01)",
+#     2: "Equal interval (D10)",
+#     3: "Construction joint part (D11)",
+#     4: "Partial pavement, overall pavement (D20)",
+#     5: "Rutting, bump, pothole, separation (D40)",
+#     6: "Cross walk blur (D43)",
+#     7: "White line blur (D44)",
+#     8: "D50 (Label not in the table)"
+# }
 severity_weights = {"low": 1, "medium": 2, "high": 3}
 
 def area_to_severity(area: float) -> str:
