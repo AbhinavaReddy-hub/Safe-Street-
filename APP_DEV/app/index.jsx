@@ -52,7 +52,7 @@ import rdamage from '../assets/images/road_damage.png';
         console.log(storedUser);
         console.log("user exist.");
         console.log("redirecting to home...");
-         setUserDetail(JSON.parse(storedUser));
+        //  setUserDetail(JSON.parse(storedUser));
         //  router.replace('../(tabs)/Home');
       }
     }catch(e){

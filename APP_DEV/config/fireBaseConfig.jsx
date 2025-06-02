@@ -4,6 +4,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getAuth,getReactNativePersistence,initializeAuth } from "firebase/auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore } from 'firebase/firestore';
+import { API_KEY,AUTH_DOMAIN,PROJECT_ID,STORAGE_BUCKET,MESSAGING_SENDER_ID,APP_ID,MEASUREMENT_ID } from "./fireBase_keys";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -11,13 +12,13 @@ import { getFirestore } from 'firebase/firestore';
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAw-EijNH88jZ3Ys05YatC8B1N1LoaIwpg",
-  authDomain: "road-damage-detection-76cd5.firebaseapp.com",
-  projectId: "road-damage-detection-76cd5",
-  storageBucket: "road-damage-detection-76cd5.firebasestorage.app",
-  messagingSenderId: "333365650633",
-  appId: "1:333365650633:web:ce49e14ff16594d2ae5918",
-  measurementId: "G-8NBEH898BD"
+  apiKey: API_KEY,
+  authDomain: AUTH_DOMAIN,
+  projectId: PROJECT_ID,
+  storageBucket: STORAGE_BUCKET,
+  messagingSenderId: MESSAGING_SENDER_ID,
+  appId: APP_ID,
+  measurementId: MEASUREMENT_ID
 };
 
 // Initialize Firebase

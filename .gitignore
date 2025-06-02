@@ -4,6 +4,7 @@
 # dependencies
 APP_DEV/node_modules/
 APP_DEV/.env
+APP_DEV/config/fireBase_keys.js
 # Expo
 APP_DEV/.expo/
 APP_DEV/dist/

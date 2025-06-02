@@ -105,10 +105,14 @@ const Upload = () => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images, // Corrected MediaType
       allowsMultipleSelection: true,
       selectionLimit: 10 - selectedImages.length,
+      exif:true,
       quality: 1,
     });
-
+    console.log(result);
+    console.log(result.assets[0].exif);
+    
     if (!result.canceled) {
+      
       const newImages = result.assets.map((asset) => asset.uri);
       const totalImages = [...selectedImages, ...newImages];
 
