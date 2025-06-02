@@ -104,7 +104,7 @@ function Home() {
       const apiData = await response1.json();
       const countData = await response2.json();
       const assigned = await response3.json();
-      const completed = await response4.json()
+      const completed = await response4.json();
       const transformedReports = transformReportsData(apiData.data);
       
       setReports(transformedReports.slice(0, 3));

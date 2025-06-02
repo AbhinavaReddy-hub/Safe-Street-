@@ -7,7 +7,7 @@ export const IpProvider  = ({ children }) => {
   useEffect(() => {
     const fetchIp = async () => {
       try {
-        const response = await fetch('http://192.168.43.97:3000/ip');  
+        const response = await fetch('http://192.168.148.157:3000/ip');  
         const data = await response.json();
         setIp(data.ip);
       } catch (error) {
