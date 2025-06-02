@@ -195,7 +195,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("main")
 
 # MongoDB setup
-MONGO_URI = "mongodb+srv://safestreet:abcd@safestreet.n7escz5.mongodb.net/?retryWrites=true&w=majority&appName=SafeStreet"
+MONGO_URI = ""
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 db = client["test"]
 reports_collection = db["reports"]
