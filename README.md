@@ -155,8 +155,8 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 For queries or collaboration:
 
-- ✉️ Email: ozairgdsc@gmail.com , avanagantiabhinavreddy@gmail.com
-- 🔗 LinkedIn: https://www.linkedin.com/in/md-ozair-0a0241342/ , https://www.linkedin.com/in/avanaganti-abhinava-reddy/
+- ✉️ Email: ozairgdsc@gmail.com , avanagantiabhinavreddy@gmail.com , krrkailasa@gmail.com
+- 🔗 LinkedIn: https://www.linkedin.com/in/md-ozair-0a0241342/ , https://www.linkedin.com/in/avanaganti-abhinava-reddy/ , https://www.linkedin.com/in/kailasa-raghunandan-rao-968701286/
 - 💻 GitHub: https://github.com/ozair-kmit
 
 ---
